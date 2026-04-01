@@ -58,21 +58,23 @@ export function SuperchargerCard({
           ⚡
         </span>
       ))}
-      <span
-        className={cn(
-          "mb-4 inline-flex w-fit items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium",
-          badge
-        )}
-      >
-        <span className={cn("size-1.5 rounded-full", dot)} />
-        {label}
-      </span>
-      <h2 className="text-sm font-semibold leading-snug text-foreground">
-        {supercharger.title}
-      </h2>
-      <div className="mt-auto flex items-center justify-between pt-4">
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <h2 className="text-base font-semibold leading-snug text-foreground">
+          {supercharger.title}
+        </h2>
+        <span
+          className={cn(
+            "shrink-0 inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium",
+            badge
+          )}
+        >
+          <span className={cn("size-1.5 rounded-full", dot)} />
+          {label}
+        </span>
+      </div>
+      <div className="mt-4 flex items-center justify-between">
         <p className="text-xs text-muted-foreground">
-          {formatDate(supercharger.first_seen_at)}
+          First seen {formatDate(supercharger.first_seen_at)}
         </p>
         <a
           href={supercharger.tesla_url}
@@ -81,7 +83,7 @@ export function SuperchargerCard({
           className="text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
           onClick={(e) => e.stopPropagation()}
         >
-          Tesla.com →
+          View on Tesla.com →
         </a>
       </div>
     </GlassCard>

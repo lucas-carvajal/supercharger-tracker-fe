@@ -130,7 +130,7 @@ export function SuperchargerList({
       </div>
 
       {/* Grid */}
-      <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 items-start gap-5 md:grid-cols-2 lg:grid-cols-3">
         {loadingMode === "replacing"
           ? Array.from({ length: SKELETON_COUNT }).map((_, i) => (
               <SuperchargerCardSkeleton key={i} />
@@ -141,7 +141,7 @@ export function SuperchargerList({
       </div>
 
       {/* Show more */}
-      {loadingMode !== "replacing" && items.length < total && (
+      {loadingMode !== "replacing" && offset < total && (
         <div className="mt-10 flex justify-center">
           <Button
             variant="outline"

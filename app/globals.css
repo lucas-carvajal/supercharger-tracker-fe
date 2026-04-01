@@ -87,6 +87,8 @@
   background-image:
     radial-gradient(ellipse at 15% 25%, oklch(0.28 0.12 265 / 0.55), transparent 55%),
     radial-gradient(ellipse at 85% 75%, oklch(0.25 0.10 22 / 0.40), transparent 55%);
+  background-attachment: fixed;
+  background-repeat: no-repeat;
 }
 
 .glass-card {
@@ -169,6 +171,6 @@
     @apply bg-background text-foreground;
   }
   html {
-    @apply font-sans;
+    @apply font-sans bg-background;
   }
 }
