@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { Supercharger, SuperchargerStatus, StatsResponse } from "@/lib/api";
+import type { Supercharger, SuperchargerStatus } from "@/lib/api";
 import { SuperchargerCard } from "@/components/SuperchargerCard";
 import { Button } from "@/components/ui/button";
 import { GlassCard } from "@/components/ui/glass-card";
@@ -91,12 +91,12 @@ function FilterSelect({
   children: React.ReactNode;
 }) {
   return (
-    <div className="relative">
+    <div className="relative flex-1 sm:flex-none">
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
-        className="appearance-none cursor-pointer bg-transparent py-2.5 pl-4 pr-8 text-sm text-foreground focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+        className="w-full appearance-none cursor-pointer bg-transparent py-3 pl-4 pr-8 text-sm text-foreground focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:py-2.5"
       >
         {children}
       </select>
@@ -125,7 +125,6 @@ function SuperchargerCardSkeleton() {
 interface SuperchargerListProps {
   initialItems: Supercharger[];
   initialTotal: number;
-  stats: StatsResponse | null;
 }
 
 export function SuperchargerList({
@@ -203,8 +202,8 @@ export function SuperchargerList({
   return (
     <div>
       {/* Floating filter pill */}
-      <div className="sticky top-4 z-10 mb-8 flex justify-center">
-        <div className="inline-flex items-center overflow-hidden rounded-2xl border border-white/15 bg-background/90 shadow-2xl backdrop-blur-xl">
+      <div className="z-10 mb-8 flex justify-center sm:sticky sm:top-4">
+        <div className="flex w-full items-center overflow-hidden rounded-2xl border border-white/15 bg-background/90 shadow-2xl backdrop-blur-xl sm:w-auto">
           <FilterSelect
             value={activeStatus ?? ""}
             onChange={handleStatusChange}
@@ -213,7 +212,6 @@ export function SuperchargerList({
             <option value="">All Statuses</option>
             <option value="IN_DEVELOPMENT">In Development</option>
             <option value="UNDER_CONSTRUCTION">Under Construction</option>
-            <option value="UNKNOWN">Unknown</option>
           </FilterSelect>
           <div className="h-5 w-px shrink-0 bg-border/60" />
           <FilterSelect
@@ -251,7 +249,7 @@ export function SuperchargerList({
         <div className="mt-10 flex justify-center">
           <Button
             variant="outline"
-            className="rounded-full px-8"
+            className="w-full rounded-full px-8 sm:w-auto"
             onClick={handleShowMore}
             disabled={isLoading}
           >

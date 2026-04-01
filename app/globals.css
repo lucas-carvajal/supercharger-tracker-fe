@@ -171,6 +171,6 @@
     @apply bg-background text-foreground;
   }
   html {
-    @apply font-sans bg-background;
+    @apply font-sans bg-background overflow-x-hidden;
   }
 }

@@ -46,7 +46,7 @@ export function SuperchargerCard({
 
   return (
     <GlassCard
-      className="animate-card-enter relative flex cursor-pointer flex-col transition-all active:scale-95 hover:scale-[1.03] hover:bg-white/[0.08] hover:border-white/[0.15] hover:shadow-lg"
+      className="animate-card-enter relative flex cursor-pointer flex-col transition-all active:scale-95 hover:bg-white/[0.08] hover:border-white/[0.15] hover:shadow-lg [@media(hover:hover)]:hover:scale-[1.03]"
       onClick={() => setSparks((prev) => [...prev, Date.now()])}
     >
       {sparks.map((key) => (
@@ -80,7 +80,7 @@ export function SuperchargerCard({
           href={supercharger.tesla_url}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+          className="-mr-1 -my-2 py-2 pr-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
           onClick={(e) => e.stopPropagation()}
         >
           View on Tesla.com →

@@ -8,40 +8,40 @@ export default async function Home() {
   ]);
 
   return (
-    <div className="mx-auto min-h-full w-full max-w-6xl px-4 py-16 sm:px-8">
+    <div className="mx-auto min-h-full w-full max-w-6xl overflow-x-clip px-8 py-12 sm:px-12 sm:py-16 lg:px-8">
       <header className="mb-16 text-center">
         <p className="mb-5 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
           Tesla Supercharger Buildout Tracker
         </p>
-        <h1 className="font-heading text-6xl font-bold tracking-tight text-foreground sm:text-8xl">
+        <h1 className="font-heading text-3xl font-bold tracking-tight text-foreground sm:text-6xl lg:text-8xl">
           Soonercharger
         </h1>
-        <p className="mx-auto mt-6 text-xl text-muted-foreground sm:text-2xl">
+        <p className="mx-auto mt-6 text-base text-muted-foreground sm:text-xl lg:text-2xl">
           Track the expansion of the world&apos;s biggest charging network in
           real time
         </p>
-        <div className="mt-8 flex flex-wrap justify-center gap-x-10 gap-y-4">
+        <div className="mt-8 grid grid-cols-3 gap-4 sm:flex sm:flex-wrap sm:justify-center sm:gap-x-10 sm:gap-y-4">
           <div className="flex flex-col items-center">
-            <span className="text-4xl font-bold tabular-nums text-foreground">
+            <span className="text-2xl font-bold tabular-nums text-foreground sm:text-4xl">
               {stats?.total_active ?? data.total}
             </span>
-            <span className="mt-1 text-sm text-muted-foreground">
-              chargers coming soon
+            <span className="mt-1 text-xs text-muted-foreground sm:text-sm">
+              coming soon
             </span>
           </div>
           <div className="flex flex-col items-center">
-            <span className="text-4xl font-bold tabular-nums text-foreground">
+            <span className="text-2xl font-bold tabular-nums text-foreground sm:text-4xl">
               {stats?.by_status["UNDER_CONSTRUCTION"] ?? "—"}
             </span>
-            <span className="mt-1 text-sm text-muted-foreground">
+            <span className="mt-1 text-xs text-muted-foreground sm:text-sm">
               under construction
             </span>
           </div>
           <div className="flex flex-col items-center">
-            <span className="text-4xl font-bold tabular-nums text-foreground">
+            <span className="text-2xl font-bold tabular-nums text-foreground sm:text-4xl">
               {stats?.by_status["IN_DEVELOPMENT"] ?? "—"}
             </span>
-            <span className="mt-1 text-sm text-muted-foreground">
+            <span className="mt-1 text-xs text-muted-foreground sm:text-sm">
               in development
             </span>
           </div>
