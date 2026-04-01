@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import type { Supercharger, SuperchargerStatus } from "@/lib/api";
+import { GlassCard } from "@/components/ui/glass-card";
 
 const statusConfig: Record<
   SuperchargerStatus,
@@ -41,22 +42,22 @@ export function SuperchargerCard({
   const { label, dot, badge } =
     statusConfig[supercharger.status] ?? statusConfig.UNKNOWN;
 
-  const [sparkKey, setSparkKey] = useState<number | null>(null);
+  const [sparks, setSparks] = useState<number[]>([]);
 
   return (
-    <div
-      className="animate-card-enter relative flex cursor-pointer flex-col rounded-xl border border-border bg-card p-5 transition-all active:scale-95 hover:-translate-y-0.5 hover:border-foreground/15 hover:bg-foreground/[0.02] hover:shadow-md"
-      onClick={() => setSparkKey(Date.now())}
+    <GlassCard
+      className="animate-card-enter relative flex cursor-pointer flex-col transition-all active:scale-95 hover:scale-[1.03] hover:bg-white/[0.08] hover:border-white/[0.15] hover:shadow-lg"
+      onClick={() => setSparks((prev) => [...prev, Date.now()])}
     >
-      {sparkKey !== null && (
+      {sparks.map((key) => (
         <span
-          key={sparkKey}
+          key={key}
           className="animate-spark pointer-events-none absolute left-1/2 top-1/2 select-none text-2xl"
-          onAnimationEnd={() => setSparkKey(null)}
+          onAnimationEnd={() => setSparks((prev) => prev.filter((k) => k !== key))}
         >
           ⚡
         </span>
-      )}
+      ))}
       <span
         className={cn(
           "mb-4 inline-flex w-fit items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium",
@@ -83,6 +84,6 @@ export function SuperchargerCard({
           Tesla.com →
         </a>
       </div>
-    </div>
+    </GlassCard>
   );
 }

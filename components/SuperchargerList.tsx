@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { Supercharger, SuperchargerStatus, StatsResponse } from "@/lib/api";
 import { SuperchargerCard } from "@/components/SuperchargerCard";
 import { Button } from "@/components/ui/button";
+import { GlassCard } from "@/components/ui/glass-card";
 
 const LIMIT = 30;
 const SKELETON_COUNT = 9;
@@ -19,15 +20,15 @@ const FILTERS: { label: string; value: FilterStatus }[] = [
 
 function SuperchargerCardSkeleton() {
   return (
-    <div className="flex flex-col rounded-xl border border-border bg-card p-5">
-      <div className="mb-4 h-5 w-28 animate-pulse rounded-full bg-muted" />
-      <div className="h-4 w-full animate-pulse rounded-md bg-muted" />
-      <div className="mt-1.5 h-4 w-2/3 animate-pulse rounded-md bg-muted" />
+    <GlassCard className="flex flex-col">
+      <div className="mb-4 h-5 w-28 animate-pulse rounded-full bg-white/10" />
+      <div className="h-4 w-full animate-pulse rounded-md bg-white/10" />
+      <div className="mt-1.5 h-4 w-2/3 animate-pulse rounded-md bg-white/10" />
       <div className="mt-auto flex items-center justify-between pt-4">
-        <div className="h-3 w-24 animate-pulse rounded bg-muted" />
-        <div className="h-3 w-16 animate-pulse rounded bg-muted" />
+        <div className="h-3 w-24 animate-pulse rounded bg-white/10" />
+        <div className="h-3 w-16 animate-pulse rounded bg-white/10" />
       </div>
-    </div>
+    </GlassCard>
   );
 }
 
