@@ -48,12 +48,11 @@ export default async function Home() {
         </div>
       </header>
       <main>
-        <SuperchargerList
-          initialItems={data.items}
-          initialTotal={data.total}
-          stats={stats}
-        />
+        <SuperchargerList initialItems={data.items} initialTotal={data.total} />
       </main>
+      <footer className="mt-24 pb-8 text-center text-sm text-muted-foreground">
+        Thanks Tesla Charging Team! Keep it up ⚡️
+      </footer>
     </div>
   );
 }

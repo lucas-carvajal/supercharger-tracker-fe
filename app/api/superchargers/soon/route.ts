@@ -12,6 +12,8 @@ export async function GET(request: NextRequest) {
   upstream.set("offset", searchParams.get("offset") ?? "0");
   const status = searchParams.get("status");
   if (status) upstream.set("status", status);
+  const region = searchParams.get("region");
+  if (region) upstream.set("region", region);
 
   const res = await fetch(
     `${baseUrl}/superchargers/soon?${upstream}`,

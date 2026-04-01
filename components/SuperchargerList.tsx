@@ -12,21 +12,111 @@ const SKELETON_COUNT = 9;
 type FilterStatus = SuperchargerStatus | null;
 type LoadingMode = "idle" | "replacing" | "appending";
 
-const FILTERS: { label: string; value: FilterStatus }[] = [
-  { label: "All", value: null },
-  { label: "In Development", value: "IN_DEVELOPMENT" },
-  { label: "Under Construction", value: "UNDER_CONSTRUCTION" },
+const REGION_GROUPS: { label: string; options: { label: string; value: string }[] }[] = [
+  {
+    label: "North America",
+    options: [
+      { label: "United States", value: "US" },
+      { label: "Canada", value: "Canada" },
+      { label: "Mexico", value: "Mexico" },
+    ],
+  },
+  {
+    label: "Europe",
+    options: [
+      { label: "United Kingdom", value: "United Kingdom" },
+      { label: "Germany", value: "Germany" },
+      { label: "France", value: "France" },
+      { label: "Spain", value: "Spain" },
+      { label: "Norway", value: "Norway" },
+      { label: "Sweden", value: "Sweden" },
+      { label: "Italy", value: "Italy" },
+      { label: "Finland", value: "Finland" },
+      { label: "Denmark", value: "Denmark" },
+      { label: "Netherlands", value: "Netherlands" },
+      { label: "Switzerland", value: "Switzerland" },
+      { label: "Austria", value: "Austria" },
+      { label: "Poland", value: "Poland" },
+      { label: "Portugal", value: "Portugal" },
+      { label: "Czech Republic", value: "Czech Republic" },
+      { label: "Hungary", value: "Hungary" },
+      { label: "Romania", value: "Romania" },
+      { label: "Croatia", value: "Croatia" },
+      { label: "Slovenia", value: "Slovenia" },
+      { label: "Slovakia", value: "Slovakia" },
+      { label: "Latvia", value: "Latvia" },
+      { label: "Iceland", value: "Iceland" },
+      { label: "Ireland", value: "Ireland" },
+    ],
+  },
+  {
+    label: "Asia Pacific",
+    options: [
+      { label: "Australia", value: "Australia" },
+      { label: "New Zealand", value: "New Zealand" },
+      { label: "Japan", value: "Japan" },
+      { label: "South Korea", value: "South Korea" },
+      { label: "Taiwan", value: "Taiwan" },
+      { label: "Thailand", value: "Thailand" },
+    ],
+  },
+  {
+    label: "Middle East & Africa",
+    options: [
+      { label: "UAE", value: "UAE" },
+      { label: "Turkey", value: "Turkey" },
+      { label: "Israel", value: "Israel" },
+      { label: "Saudi Arabia", value: "Saudi Arabia" },
+      { label: "Morocco", value: "Morocco" },
+    ],
+  },
+  {
+    label: "Latin America",
+    options: [
+      { label: "Chile", value: "Chile" },
+      { label: "Colombia", value: "Colombia" },
+    ],
+  },
 ];
+
+function FilterSelect({
+  value,
+  onChange,
+  disabled,
+  children,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  disabled: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="relative">
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        disabled={disabled}
+        className="appearance-none cursor-pointer bg-transparent py-2.5 pl-4 pr-8 text-sm text-foreground focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        {children}
+      </select>
+      <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+        ▾
+      </span>
+    </div>
+  );
+}
 
 function SuperchargerCardSkeleton() {
   return (
     <GlassCard className="flex flex-col">
-      <div className="mb-4 h-5 w-28 animate-pulse rounded-full bg-white/10" />
-      <div className="h-4 w-full animate-pulse rounded-md bg-white/10" />
-      <div className="mt-1.5 h-4 w-2/3 animate-pulse rounded-md bg-white/10" />
-      <div className="mt-auto flex items-center justify-between pt-4">
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <div className="h-5 w-40 animate-pulse rounded-md bg-white/10" />
+        <div className="h-5 w-28 animate-pulse rounded-full bg-white/10" />
+      </div>
+      <div className="mt-4 flex items-center justify-between">
         <div className="h-3 w-24 animate-pulse rounded bg-white/10" />
-        <div className="h-3 w-16 animate-pulse rounded bg-white/10" />
+        <div className="h-3 w-28 animate-pulse rounded bg-white/10" />
       </div>
     </GlassCard>
   );
@@ -41,16 +131,17 @@ interface SuperchargerListProps {
 export function SuperchargerList({
   initialItems,
   initialTotal,
-  stats,
 }: SuperchargerListProps) {
   const [items, setItems] = useState(initialItems);
   const [total, setTotal] = useState(initialTotal);
   const [offset, setOffset] = useState(initialItems.length);
-  const [activeFilter, setActiveFilter] = useState<FilterStatus>(null);
+  const [activeStatus, setActiveStatus] = useState<FilterStatus>(null);
+  const [activeRegion, setActiveRegion] = useState<string | null>(null);
   const [loadingMode, setLoadingMode] = useState<LoadingMode>("idle");
 
   async function fetchItems(
     status: FilterStatus,
+    region: string | null,
     currentOffset: number,
     replace: boolean
   ) {
@@ -61,6 +152,7 @@ export function SuperchargerList({
         offset: String(currentOffset),
       });
       if (status) params.set("status", status);
+      if (region) params.set("region", region);
 
       const res = await fetch(`/api/superchargers/soon?${params}`);
       const data = await res.json();
@@ -88,44 +180,58 @@ export function SuperchargerList({
     }
   }
 
-  function handleFilterChange(status: FilterStatus) {
-    if (status === activeFilter) return;
-    setActiveFilter(status);
-    fetchItems(status, 0, true);
+  function handleStatusChange(value: string) {
+    const status = (value || null) as FilterStatus;
+    if (status === activeStatus) return;
+    setActiveStatus(status);
+    fetchItems(status, activeRegion, 0, true);
+  }
+
+  function handleRegionChange(value: string) {
+    const region = value || null;
+    if (region === activeRegion) return;
+    setActiveRegion(region);
+    fetchItems(activeStatus, region, 0, true);
   }
 
   function handleShowMore() {
-    fetchItems(activeFilter, offset, false);
+    fetchItems(activeStatus, activeRegion, offset, false);
   }
 
   const isLoading = loadingMode !== "idle";
 
   return (
     <div>
-      {/* Sticky filter bar */}
-      <div className="sticky top-0 z-10 -mx-4 mb-8 border-b border-border/30 bg-background/80 px-4 py-3 backdrop-blur-md sm:-mx-8 sm:px-8">
-        <div className="flex flex-wrap gap-2">
-          {FILTERS.map(({ label, value }) => {
-            const count =
-              value === null
-                ? (stats?.total_active ?? 0)
-                : (stats?.by_status[value] ?? 0);
-            return (
-              <Button
-                key={label}
-                variant={activeFilter === value ? "default" : "outline"}
-                size="sm"
-                className="rounded-full"
-                onClick={() => handleFilterChange(value)}
-                disabled={isLoading}
-              >
-                {label}
-                <span className="ml-1.5 tabular-nums opacity-60">
-                  {count.toLocaleString()}
-                </span>
-              </Button>
-            );
-          })}
+      {/* Floating filter pill */}
+      <div className="sticky top-4 z-10 mb-8 flex justify-center">
+        <div className="inline-flex items-center overflow-hidden rounded-2xl border border-white/15 bg-background/90 shadow-2xl backdrop-blur-xl">
+          <FilterSelect
+            value={activeStatus ?? ""}
+            onChange={handleStatusChange}
+            disabled={isLoading}
+          >
+            <option value="">All Statuses</option>
+            <option value="IN_DEVELOPMENT">In Development</option>
+            <option value="UNDER_CONSTRUCTION">Under Construction</option>
+            <option value="UNKNOWN">Unknown</option>
+          </FilterSelect>
+          <div className="h-5 w-px shrink-0 bg-border/60" />
+          <FilterSelect
+            value={activeRegion ?? ""}
+            onChange={handleRegionChange}
+            disabled={isLoading}
+          >
+            <option value="">All Regions</option>
+            {REGION_GROUPS.map((group) => (
+              <optgroup key={group.label} label={group.label}>
+                {group.options.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+          </FilterSelect>
         </div>
       </div>
 
