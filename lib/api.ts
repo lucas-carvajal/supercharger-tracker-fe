@@ -16,6 +16,14 @@ export interface Supercharger {
   details_fetch_failed: boolean;
 }
 
+export interface SuperchargerMapItem {
+  id: string;
+  title: string;
+  latitude: number;
+  longitude: number;
+  status: SuperchargerStatus;
+}
+
 export interface SuperchargersSoonResponse {
   total: number;
   items: Supercharger[];
@@ -55,4 +63,18 @@ export async function getStats(): Promise<StatsResponse> {
     throw new Error(`Fetch failed: ${res.status} ${res.statusText}`);
 
   return res.json() as Promise<StatsResponse>;
+}
+
+export async function getMapItems(): Promise<SuperchargerMapItem[]> {
+  const baseUrl = process.env.SUPERCHARGER_API_URL;
+  if (!baseUrl) throw new Error("SUPERCHARGER_API_URL is not set");
+
+  const res = await fetch(`${baseUrl}/superchargers/soon/map`, {
+    cache: "no-store",
+  });
+
+  if (!res.ok)
+    throw new Error(`Fetch failed: ${res.status} ${res.statusText}`);
+
+  return res.json() as Promise<SuperchargerMapItem[]>;
 }

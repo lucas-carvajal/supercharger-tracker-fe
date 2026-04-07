@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { MapPin } from "lucide-react";
 import { getSuperchargersSoon, getStats } from "@/lib/api";
 import { SuperchargerList } from "@/components/SuperchargerList";
 
@@ -45,6 +47,15 @@ export default async function Home() {
               in development
             </span>
           </div>
+        </div>
+        <div className="mt-8">
+          <Link
+            href="/map"
+            className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-6 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-white/10 hover:text-foreground"
+          >
+            <MapPin className="size-4" />
+            View on map
+          </Link>
         </div>
       </header>
       <main>

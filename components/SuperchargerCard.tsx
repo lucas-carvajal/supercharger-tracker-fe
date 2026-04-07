@@ -2,29 +2,9 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import type { Supercharger, SuperchargerStatus } from "@/lib/api";
+import type { Supercharger } from "@/lib/api";
+import { STATUS_CONFIG } from "@/lib/status";
 import { GlassCard } from "@/components/ui/glass-card";
-
-const statusConfig: Record<
-  SuperchargerStatus,
-  { label: string; dot: string; badge: string }
-> = {
-  IN_DEVELOPMENT: {
-    label: "In Development",
-    dot: "bg-amber-400",
-    badge: "border-amber-400/20 bg-amber-400/10 text-amber-400",
-  },
-  UNDER_CONSTRUCTION: {
-    label: "Under Construction",
-    dot: "bg-sky-400",
-    badge: "border-sky-400/20 bg-sky-400/10 text-sky-400",
-  },
-  UNKNOWN: {
-    label: "Unknown",
-    dot: "bg-zinc-500",
-    badge: "border-zinc-500/20 bg-zinc-500/10 text-zinc-400",
-  },
-};
 
 function formatDate(iso: string): string {
   return new Intl.DateTimeFormat("en-US", {
@@ -40,7 +20,7 @@ export function SuperchargerCard({
   supercharger: Supercharger;
 }) {
   const { label, dot, badge } =
-    statusConfig[supercharger.status] ?? statusConfig.UNKNOWN;
+    STATUS_CONFIG[supercharger.status] ?? STATUS_CONFIG.UNKNOWN;
 
   const [sparks, setSparks] = useState<number[]>([]);
 
