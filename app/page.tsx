@@ -4,10 +4,16 @@ import { getSuperchargersSoon, getStats } from "@/lib/api";
 import { SuperchargerList } from "@/components/SuperchargerList";
 
 export default async function Home() {
-  const [data, stats] = await Promise.all([
-    getSuperchargersSoon(30),
-    getStats().catch(() => null),
-  ]);
+  let data = { items: [], total: 0 };
+  let loadError = false;
+
+  try {
+    [data] = await Promise.all([getSuperchargersSoon(30)]);
+  } catch {
+    loadError = true;
+  }
+
+  const stats = await getStats().catch(() => null);
 
   return (
     <div className="mx-auto min-h-full w-full max-w-6xl overflow-x-clip px-8 py-12 sm:px-12 sm:py-16 lg:px-8">
@@ -59,7 +65,11 @@ export default async function Home() {
         </div>
       </header>
       <main>
-        <SuperchargerList initialItems={data.items} initialTotal={data.total} />
+        <SuperchargerList
+          initialItems={data.items}
+          initialTotal={data.total}
+          initialError={loadError}
+        />
       </main>
       <footer className="mt-24 pb-8 text-center text-sm text-muted-foreground">
         Thanks Tesla Charging Team! Keep it up ⚡️

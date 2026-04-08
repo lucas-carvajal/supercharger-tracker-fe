@@ -1,22 +1,13 @@
-import { NextRequest } from "next/server";
+import { getMapItems } from "@/lib/api";
 
 export async function GET() {
-  const baseUrl = process.env.SUPERCHARGER_API_URL;
-  if (!baseUrl) {
-    return Response.json({ error: "API not configured" }, { status: 500 });
+  try {
+    const data = await getMapItems();
+    return Response.json(data);
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Unknown upstream error";
+    const status = message.includes("404") ? 404 : 500;
+    return Response.json({ error: message }, { status });
   }
-
-  const res = await fetch(`${baseUrl}/superchargers/soon/map`, {
-    cache: "no-store",
-  });
-
-  if (!res.ok) {
-    return Response.json(
-      { error: `Upstream error: ${res.status}` },
-      { status: res.status }
-    );
-  }
-
-  const data = await res.json();
-  return Response.json(data);
 }

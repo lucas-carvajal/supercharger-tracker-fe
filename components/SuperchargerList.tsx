@@ -5,6 +5,7 @@ import type { Supercharger, SuperchargerStatus } from "@/lib/api";
 import { SuperchargerCard } from "@/components/SuperchargerCard";
 import { Button } from "@/components/ui/button";
 import { GlassCard } from "@/components/ui/glass-card";
+import { OverlayNotice } from "@/components/ui/overlay-notice";
 
 const LIMIT = 30;
 const SKELETON_COUNT = 9;
@@ -125,11 +126,13 @@ function SuperchargerCardSkeleton() {
 interface SuperchargerListProps {
   initialItems: Supercharger[];
   initialTotal: number;
+  initialError?: boolean;
 }
 
 export function SuperchargerList({
   initialItems,
   initialTotal,
+  initialError = false,
 }: SuperchargerListProps) {
   const [items, setItems] = useState(initialItems);
   const [total, setTotal] = useState(initialTotal);
@@ -137,6 +140,7 @@ export function SuperchargerList({
   const [activeStatus, setActiveStatus] = useState<FilterStatus>(null);
   const [activeRegion, setActiveRegion] = useState<string | null>(null);
   const [loadingMode, setLoadingMode] = useState<LoadingMode>("idle");
+  const [loadError, setLoadError] = useState(initialError);
 
   async function fetchItems(
     status: FilterStatus,
@@ -146,6 +150,7 @@ export function SuperchargerList({
   ) {
     setLoadingMode(replace ? "replacing" : "appending");
     try {
+      setLoadError(false);
       const params = new URLSearchParams({
         limit: String(LIMIT),
         offset: String(currentOffset),
@@ -154,6 +159,7 @@ export function SuperchargerList({
       if (region) params.set("region", region);
 
       const res = await fetch(`/api/superchargers/soon?${params}`);
+      if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
       const data = await res.json();
 
       if (replace) {
@@ -174,6 +180,8 @@ export function SuperchargerList({
         setOffset((prev) => prev + data.items.length);
       }
       setTotal(data.total);
+    } catch {
+      setLoadError(true);
     } finally {
       setLoadingMode("idle");
     }
@@ -201,6 +209,13 @@ export function SuperchargerList({
 
   return (
     <div>
+      {loadError && (
+        <OverlayNotice
+          title="Supercharger data unavailable"
+          message="We're having trouble loading supercharger data right now. Please try again later."
+        />
+      )}
+
       {/* Floating filter pill */}
       <div className="z-10 mb-8 flex justify-center sm:sticky sm:top-4">
         <div className="flex w-full items-center overflow-hidden rounded-2xl border border-white/15 bg-background/90 shadow-2xl backdrop-blur-xl sm:w-auto">

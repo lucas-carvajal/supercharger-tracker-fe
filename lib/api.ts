@@ -35,15 +35,19 @@ export interface StatsResponse {
   as_of: string | null;
 }
 
+async function fetchJson(input: string): Promise<Response> {
+  return fetch(input, {
+    cache: "no-store",
+  });
+}
+
 export async function getSuperchargersSoon(
   limit = 20
 ): Promise<SuperchargersSoonResponse> {
   const baseUrl = process.env.SUPERCHARGER_API_URL;
   if (!baseUrl) throw new Error("SUPERCHARGER_API_URL is not set");
 
-  const res = await fetch(`${baseUrl}/superchargers/soon?limit=${limit}`, {
-    cache: "no-store",
-  });
+  const res = await fetchJson(`${baseUrl}/superchargers/soon?limit=${limit}`);
 
   if (!res.ok)
     throw new Error(`Fetch failed: ${res.status} ${res.statusText}`);
@@ -55,9 +59,7 @@ export async function getStats(): Promise<StatsResponse> {
   const baseUrl = process.env.SUPERCHARGER_API_URL;
   if (!baseUrl) throw new Error("SUPERCHARGER_API_URL is not set");
 
-  const res = await fetch(`${baseUrl}/superchargers/soon/stats`, {
-    cache: "no-store",
-  });
+  const res = await fetchJson(`${baseUrl}/superchargers/soon/stats`);
 
   if (!res.ok)
     throw new Error(`Fetch failed: ${res.status} ${res.statusText}`);
@@ -69,9 +71,7 @@ export async function getMapItems(): Promise<SuperchargerMapItem[]> {
   const baseUrl = process.env.SUPERCHARGER_API_URL;
   if (!baseUrl) throw new Error("SUPERCHARGER_API_URL is not set");
 
-  const res = await fetch(`${baseUrl}/superchargers/soon/map`, {
-    cache: "no-store",
-  });
+  const res = await fetchJson(`${baseUrl}/superchargers/soon/map`);
 
   if (!res.ok)
     throw new Error(`Fetch failed: ${res.status} ${res.statusText}`);
