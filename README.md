@@ -16,7 +16,7 @@ Open [http://localhost:3000](http://localhost:3000).
 If you want the app to load real data locally, set `SUPERCHARGER_API_URL` before starting the dev server:
 
 ```bash
-SUPERCHARGER_API_URL=http://localhost:8000 npm run dev
+SUPERCHARGER_API_URL=http://localhost:8080 npm run dev
 ```
 
 ## Docker
@@ -31,7 +31,7 @@ Run the container locally:
 
 ```bash
 docker run --rm -p 3000:3000 \
-  -e SUPERCHARGER_API_URL=http://host.docker.internal:8000 \
+  -e SUPERCHARGER_API_URL=http://host.docker.internal:8080 \
   --name supercharger-tracker-fe \
   supercharger-tracker-fe:local
 ```
@@ -41,7 +41,7 @@ Then open [http://localhost:3000](http://localhost:3000).
 Notes:
 
 - `SUPERCHARGER_API_URL` is required at runtime. The app uses it in server-rendered pages and route handlers.
-- `http://host.docker.internal:8000` works on Docker Desktop. On Linux, replace it with an address your container can reach for the backend API.
+- `http://host.docker.internal:8080` works on Docker Desktop. On Linux, replace it with an address your container can reach for the backend API.
 - The container listens on port `3000`.
 
 ## Coolify
