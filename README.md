@@ -1,36 +1,53 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Supercharger Tracker FE
 
-## Getting Started
+Frontend for tracking Tesla Supercharger locations that are coming soon, under construction, or in development.
 
-First, run the development server:
+## Local Development
+
+Install dependencies and start the Next.js dev server:
 
 ```bash
+npm ci
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+If you want the app to load real data locally, set `SUPERCHARGER_API_URL` before starting the dev server:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+SUPERCHARGER_API_URL=http://localhost:8000 npm run dev
+```
 
-## Learn More
+## Docker
 
-To learn more about Next.js, take a look at the following resources:
+Build the production image locally:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+docker build -t supercharger-tracker-fe:local .
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Run the container locally:
 
-## Deploy on Vercel
+```bash
+docker run --rm -p 3000:3000 \
+  -e SUPERCHARGER_API_URL=http://host.docker.internal:8000 \
+  --name supercharger-tracker-fe \
+  supercharger-tracker-fe:local
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Then open [http://localhost:3000](http://localhost:3000).
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Notes:
+
+- `SUPERCHARGER_API_URL` is required at runtime. The app uses it in server-rendered pages and route handlers.
+- `http://host.docker.internal:8000` works on Docker Desktop. On Linux, replace it with an address your container can reach for the backend API.
+- The container listens on port `3000`.
+
+## Coolify
+
+This repo includes a production-ready multi-stage `Dockerfile` for Coolify. Configure `SUPERCHARGER_API_URL` as an environment variable in Coolify and expose port `3000`.
+
+## Troubleshooting
+
+If `docker build` fails during `next build`, fix any TypeScript or lint errors in the app first. The image build runs the full production build, so application build errors will also fail the Docker image build.
