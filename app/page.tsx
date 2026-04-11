@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { MapPin } from "lucide-react";
+import { connection } from "next/server";
 import {
   getSuperchargersSoon,
   getStats,
@@ -8,6 +9,8 @@ import {
 import { SuperchargerList } from "@/components/SuperchargerList";
 
 export default async function Home() {
+  await connection();
+
   let data: SuperchargersSoonResponse = { items: [], total: 0 };
   let loadError = false;
 

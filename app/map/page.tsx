@@ -1,9 +1,12 @@
 import Link from "next/link";
+import { connection } from "next/server";
 import { SuperchargerMap } from "@/components/SuperchargerMap";
 import { getMapItems, type SuperchargerMapItem } from "@/lib/api";
 import { OverlayNotice } from "@/components/ui/overlay-notice";
 
 export default async function MapPage() {
+  await connection();
+
   let items: SuperchargerMapItem[] = [];
   let loadError = false;
 
