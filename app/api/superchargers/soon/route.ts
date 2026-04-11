@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 
 export async function GET(request: NextRequest) {
-  const baseUrl = process.env.SUPERCHARGER_API_URL;
+  const baseUrl = process.env.BACKEND_URL;
   if (!baseUrl) {
     return Response.json({ error: "API not configured" }, { status: 500 });
   }

@@ -44,8 +44,8 @@ async function fetchJson(input: string): Promise<Response> {
 export async function getSuperchargersSoon(
   limit = 20
 ): Promise<SuperchargersSoonResponse> {
-  const baseUrl = process.env.SUPERCHARGER_API_URL;
-  if (!baseUrl) throw new Error("SUPERCHARGER_API_URL is not set");
+  const baseUrl = process.env.BACKEND_URL;
+  if (!baseUrl) throw new Error("BACKEND_URL is not set");
 
   const res = await fetchJson(`${baseUrl}/superchargers/soon?limit=${limit}`);
 
@@ -56,8 +56,8 @@ export async function getSuperchargersSoon(
 }
 
 export async function getStats(): Promise<StatsResponse> {
-  const baseUrl = process.env.SUPERCHARGER_API_URL;
-  if (!baseUrl) throw new Error("SUPERCHARGER_API_URL is not set");
+  const baseUrl = process.env.BACKEND_URL;
+  if (!baseUrl) throw new Error("BACKEND_URL is not set");
 
   const res = await fetchJson(`${baseUrl}/superchargers/soon/stats`);
 
@@ -68,8 +68,8 @@ export async function getStats(): Promise<StatsResponse> {
 }
 
 export async function getMapItems(): Promise<SuperchargerMapItem[]> {
-  const baseUrl = process.env.SUPERCHARGER_API_URL;
-  if (!baseUrl) throw new Error("SUPERCHARGER_API_URL is not set");
+  const baseUrl = process.env.BACKEND_URL;
+  if (!baseUrl) throw new Error("BACKEND_URL is not set");
 
   const res = await fetchJson(`${baseUrl}/superchargers/soon/map`);
 

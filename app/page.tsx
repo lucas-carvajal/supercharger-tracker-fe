@@ -1,10 +1,14 @@
 import Link from "next/link";
 import { MapPin } from "lucide-react";
-import { getSuperchargersSoon, getStats } from "@/lib/api";
+import {
+  getSuperchargersSoon,
+  getStats,
+  type SuperchargersSoonResponse,
+} from "@/lib/api";
 import { SuperchargerList } from "@/components/SuperchargerList";
 
 export default async function Home() {
-  let data = { items: [], total: 0 };
+  let data: SuperchargersSoonResponse = { items: [], total: 0 };
   let loadError = false;
 
   try {
