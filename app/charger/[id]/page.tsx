@@ -64,7 +64,7 @@ export default async function ChargerPage({ params }: ChargerPageProps) {
               Charger data unavailable
             </h1>
             <p className="mt-3 max-w-2xl text-base text-muted-foreground">
-              We couldn&apos;t load this charger overview right now. The backend
+              We couldn&apos;t load this charger overview right now. The server
               may be temporarily unavailable.
             </p>
           </div>
@@ -167,7 +167,12 @@ export default async function ChargerPage({ params }: ChargerPageProps) {
                       />
                     )}
                   </div>
-                  <div className={cn("pt-1", index < timelineStates.length - 1 && "pb-6")}>
+                  <div
+                    className={cn(
+                      "pt-1",
+                      index < timelineStates.length - 1 && "pb-6",
+                    )}
+                  >
                     <p className="text-base font-semibold text-foreground">
                       {step.label}
                     </p>
@@ -263,7 +268,8 @@ function getPhaseStepState(
       id: stepId,
       label: formatStatusLabel(stepId),
       emoji: getPhaseEmoji(stepId),
-      variant: "border-2 border-emerald-400/70 bg-emerald-400/6 text-emerald-200",
+      variant:
+        "border-2 border-emerald-400/70 bg-emerald-400/6 text-emerald-200",
       isReached: true,
       copy:
         stepId === "OPENED"
@@ -279,7 +285,8 @@ function getPhaseStepState(
       id: stepId,
       label: formatStatusLabel(stepId),
       emoji: getPhaseEmoji(stepId),
-      variant: "border-2 border-emerald-400/70 bg-emerald-400/6 text-emerald-200",
+      variant:
+        "border-2 border-emerald-400/70 bg-emerald-400/6 text-emerald-200",
       isReached: true,
       copy:
         stepId === "OPENED"
@@ -306,9 +313,7 @@ function getPhaseEmoji(
   return "⚡";
 }
 
-function formatStatusLabel(
-  status: SuperchargerHistoryStatus,
-) {
+function formatStatusLabel(status: SuperchargerHistoryStatus) {
   if (status === "IN_DEVELOPMENT") return "In development";
   if (status === "UNDER_CONSTRUCTION") return "Under construction";
   if (status === "OPENED") return "Opened";

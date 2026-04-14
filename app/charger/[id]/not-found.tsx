@@ -14,8 +14,7 @@ export default function ChargerNotFound() {
             Charger not found
           </h1>
           <p className="mt-3 max-w-2xl text-base text-muted-foreground">
-            This charger ID isn&apos;t in the current coming-soon dataset. It may
-            have been removed, opened already, or the link may be wrong.
+            It may have been removed, opened already, or the link may be wrong.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link
