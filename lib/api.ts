@@ -3,9 +3,16 @@ export type SuperchargerStatus =
   | "UNDER_CONSTRUCTION"
   | "UNKNOWN";
 
+export type SuperchargerHistoryStatus =
+  | SuperchargerStatus
+  | "OPENED"
+  | "REMOVED";
+
 export interface Supercharger {
   id: string;
   title: string;
+  city: string | null;
+  region: string | null;
   latitude: number;
   longitude: number;
   status: SuperchargerStatus;
@@ -24,6 +31,16 @@ export interface SuperchargerMapItem {
   status: SuperchargerStatus;
 }
 
+export interface SuperchargerStatusHistoryEntry {
+  old_status: SuperchargerHistoryStatus | null;
+  new_status: SuperchargerHistoryStatus;
+  changed_at: string;
+}
+
+export interface SuperchargerDetail extends Supercharger {
+  status_history: SuperchargerStatusHistoryEntry[];
+}
+
 export interface SuperchargersSoonResponse {
   total: number;
   items: Supercharger[];
@@ -35,10 +52,30 @@ export interface StatsResponse {
   as_of: string | null;
 }
 
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    public readonly status: number,
+  ) {
+    super(message);
+    this.name = "ApiError";
+  }
+}
+
 async function fetchJson(input: string): Promise<Response> {
   return fetch(input, {
     cache: "no-store",
   });
+}
+
+async function fetchData<T>(input: string): Promise<T> {
+  const res = await fetchJson(input);
+
+  if (!res.ok) {
+    throw new ApiError(`Fetch failed: ${res.status} ${res.statusText}`, res.status);
+  }
+
+  return res.json() as Promise<T>;
 }
 
 export async function getSuperchargersSoon(
@@ -47,34 +84,28 @@ export async function getSuperchargersSoon(
   const baseUrl = process.env.BACKEND_URL;
   if (!baseUrl) throw new Error("BACKEND_URL is not set");
 
-  const res = await fetchJson(`${baseUrl}/superchargers/soon?limit=${limit}`);
-
-  if (!res.ok)
-    throw new Error(`Fetch failed: ${res.status} ${res.statusText}`);
-
-  return res.json() as Promise<SuperchargersSoonResponse>;
+  return fetchData<SuperchargersSoonResponse>(
+    `${baseUrl}/superchargers/soon?limit=${limit}`,
+  );
 }
 
 export async function getStats(): Promise<StatsResponse> {
   const baseUrl = process.env.BACKEND_URL;
   if (!baseUrl) throw new Error("BACKEND_URL is not set");
 
-  const res = await fetchJson(`${baseUrl}/superchargers/soon/stats`);
-
-  if (!res.ok)
-    throw new Error(`Fetch failed: ${res.status} ${res.statusText}`);
-
-  return res.json() as Promise<StatsResponse>;
+  return fetchData<StatsResponse>(`${baseUrl}/superchargers/soon/stats`);
 }
 
 export async function getMapItems(): Promise<SuperchargerMapItem[]> {
   const baseUrl = process.env.BACKEND_URL;
   if (!baseUrl) throw new Error("BACKEND_URL is not set");
 
-  const res = await fetchJson(`${baseUrl}/superchargers/soon/map`);
+  return fetchData<SuperchargerMapItem[]>(`${baseUrl}/superchargers/soon/map`);
+}
 
-  if (!res.ok)
-    throw new Error(`Fetch failed: ${res.status} ${res.statusText}`);
+export async function getSupercharger(id: string): Promise<SuperchargerDetail> {
+  const baseUrl = process.env.BACKEND_URL;
+  if (!baseUrl) throw new Error("BACKEND_URL is not set");
 
-  return res.json() as Promise<SuperchargerMapItem[]>;
+  return fetchData<SuperchargerDetail>(`${baseUrl}/superchargers/soon/${id}`);
 }

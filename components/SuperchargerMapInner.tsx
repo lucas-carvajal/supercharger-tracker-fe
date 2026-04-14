@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import type MapLibreGL from "maplibre-gl";
 import type { SuperchargerMapItem, SuperchargerStatus } from "@/lib/api";
 import { STATUS_CONFIG } from "@/lib/status";
 import { cn } from "@/lib/utils";
 import { Map, useMap, MapPopup, MapControls } from "@/components/ui/map";
+import { StatusBadge } from "@/components/StatusBadge";
 
 const SOURCE_ID = "superchargers";
 const POINT_LAYER = "supercharger-points";
@@ -128,6 +130,29 @@ function PointSource({
   return null;
 }
 
+function MapFocus({
+  item,
+}: {
+  item: SuperchargerMapItem | null;
+}) {
+  const { map, isLoaded } = useMap();
+  const lastFocusedId = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!item || !isLoaded || !map) return;
+    if (lastFocusedId.current === item.id) return;
+
+    lastFocusedId.current = item.id;
+    map.easeTo({
+      center: [item.longitude, item.latitude],
+      zoom: Math.max(map.getZoom(), 9),
+      duration: 900,
+    });
+  }, [item, isLoaded, map]);
+
+  return null;
+}
+
 const LEGEND_ITEMS: {
   status: SuperchargerStatus;
   dot: string;
@@ -144,17 +169,36 @@ const LEGEND_ITEMS: {
 export default function SuperchargerMapInner({
   items,
 }: SuperchargerMapInnerProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [selected, setSelected] = useState<SelectedPoint | null>(null);
   const [activeFilter, setActiveFilter] = useState<SuperchargerStatus | null>(
     null,
   );
+  const selectedChargerId = searchParams.get("charger");
+  const effectiveFilter = selectedChargerId ? null : activeFilter;
 
   const filteredItems = useMemo(
     () =>
-      activeFilter ? items.filter((i) => i.status === activeFilter) : items,
-    [items, activeFilter],
+      effectiveFilter
+        ? items.filter((i) => i.status === effectiveFilter)
+        : items,
+    [items, effectiveFilter],
   );
   const geojson = useMemo(() => toGeoJSON(filteredItems), [filteredItems]);
+  const selectedCharger = useMemo(
+    () => items.find((item) => item.id === selectedChargerId) ?? null,
+    [items, selectedChargerId],
+  );
+  const activeSelected = selectedCharger
+    ? {
+        properties: selectedCharger,
+        coordinates: [selectedCharger.longitude, selectedCharger.latitude] as [
+          number,
+          number,
+        ],
+      }
+    : selected;
 
   const handlePointClick = useCallback(
     (properties: SuperchargerMapItem, coordinates: [number, number]) => {
@@ -168,9 +212,22 @@ export default function SuperchargerMapInner({
     setSelected(null);
   }
 
+  function handlePopupClose() {
+    if (selectedChargerId) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete("charger");
+      const nextUrl = params.toString() ? `/map?${params}` : "/map";
+      router.replace(nextUrl);
+      return;
+    }
+
+    setSelected(null);
+  }
+
   return (
     <Map center={[0, 20]} zoom={2} className="h-full w-full rounded-2xl">
       <PointSource geojson={geojson} onPointClick={handlePointClick} />
+      <MapFocus item={selectedCharger} />
       <MapControls position="bottom-right" showZoom showCompass />
       <div className="absolute bottom-6 left-6 z-10 flex flex-col gap-1.5 rounded-xl border border-white/15 bg-background/90 px-4 py-3 text-xs backdrop-blur-xl">
         {LEGEND_ITEMS.map(({ status, dot, label }) => (
@@ -188,36 +245,30 @@ export default function SuperchargerMapInner({
           </button>
         ))}
       </div>
-      {selected && (
+      {activeSelected && (
         <MapPopup
-          longitude={selected.coordinates[0]}
-          latitude={selected.coordinates[1]}
-          onClose={() => setSelected(null)}
-          className="rounded-xl border border-white/15 bg-background/95 px-4 py-3 shadow-2xl backdrop-blur-xl"
+          longitude={activeSelected.coordinates[0]}
+          latitude={activeSelected.coordinates[1]}
+          onClose={handlePopupClose}
+          className="overflow-hidden rounded-xl border border-white/15 bg-background/95 p-0 shadow-2xl backdrop-blur-xl"
         >
-          <div className="flex flex-col gap-2">
+          <button
+            type="button"
+            onClick={() =>
+              router.push(`/charger/${activeSelected.properties.id}`)
+            }
+            className="flex w-full cursor-pointer flex-col gap-2 px-4 py-3 text-left outline-none transition-colors hover:bg-white/5 focus-visible:bg-white/5 focus-visible:ring-2 focus-visible:ring-primary/40"
+          >
             <h3 className="text-sm font-semibold text-foreground">
-              {selected.properties.title}
+              {activeSelected.properties.title}
             </h3>
-            <StatusBadge status={selected.properties.status} />
-          </div>
+            <StatusBadge status={activeSelected.properties.status} />
+            <span className="mt-1 text-xs text-muted-foreground">
+              Click for details
+            </span>
+          </button>
         </MapPopup>
       )}
     </Map>
-  );
-}
-
-function StatusBadge({ status }: { status: SuperchargerStatus }) {
-  const { label, dot, badge } = STATUS_CONFIG[status] ?? STATUS_CONFIG.UNKNOWN;
-  return (
-    <span
-      className={cn(
-        "inline-flex w-fit items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium",
-        badge,
-      )}
-    >
-      <span className={cn("size-1.5 rounded-full", dot)} />
-      {label}
-    </span>
   );
 }
