@@ -271,10 +271,7 @@ function getPhaseStepState(
       variant:
         "border-2 border-emerald-400/70 bg-emerald-400/6 text-emerald-200",
       isReached: true,
-      copy:
-        stepId === "OPENED"
-          ? `Opened ${formatDateTime(startedAt)}`
-          : `Started ${formatDateTime(startedAt)}`,
+      copy: `Started ${formatDateTime(startedAt)}`,
     };
   }
 
