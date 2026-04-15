@@ -26,6 +26,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary",
   },
+  themeColor: "#ff9500",
 };
 
 const baseUrl = process.env.SITE_URL ?? "https://soonercharger.com";
