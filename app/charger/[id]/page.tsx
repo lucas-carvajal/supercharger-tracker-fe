@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
@@ -16,6 +17,38 @@ import { ChargerDetailMap } from "@/components/ChargerDetailMap";
 type ChargerPageProps = {
   params: Promise<{ id: string }>;
 };
+
+export async function generateMetadata({
+  params,
+}: ChargerPageProps): Promise<Metadata> {
+  const { id } = await params;
+
+  try {
+    const charger = await getSupercharger(id);
+    const statusLabel = formatStatusLabel(charger.status).toLowerCase();
+    const location = [charger.city, charger.region].filter(Boolean).join(", ");
+    const description = `Supercharger${location ? ` in ${location}` : ""} is ${statusLabel}. Track its buildout progress on Soonercharger.`;
+
+    const title = location || charger.title;
+
+    return {
+      title,
+      description,
+      openGraph: {
+        title,
+        description,
+        url: `/charger/${id}`,
+      },
+      alternates: {
+        canonical: `/charger/${id}`,
+      },
+    };
+  } catch {
+    return {
+      title: "Supercharger Details",
+    };
+  }
+}
 
 const PHASE_STEPS = [
   {
@@ -86,8 +119,32 @@ export default async function ChargerPage({ params }: ChargerPageProps) {
     getPhaseStepState(step.id, charger, currentPhaseStartedAt),
   );
 
+  const baseUrl = process.env.SITE_URL ?? "https://soonercharger.com";
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: baseUrl,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: charger.title,
+        item: `${baseUrl}/charger/${charger.id}`,
+      },
+    ],
+  };
+
   return (
     <div className="mx-auto min-h-full w-full max-w-6xl overflow-x-clip px-6 py-8 sm:px-10 sm:py-12 lg:px-8">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
       <div className="grid gap-6 xl:min-h-[760px] xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
         <div className="grid gap-6 xl:h-full xl:grid-rows-[auto_minmax(0,1fr)]">
           <GlassCard className="overflow-hidden p-0">
