@@ -8,31 +8,7 @@
 
 ## Blocked on design assets
 
-All three unblock at once once a proper logo/brand asset (512×512 PNG or SVG) is produced.
-
-### OG image
-
-Needs a 1200×630 PNG. Once available:
-- Add to `public/og-image.png`
-- Add `images` to `openGraph` in `app/layout.tsx`
-- Upgrade Twitter Card from `summary` to `summary_large_image`
-
-Can also be generated dynamically via `app/opengraph-image.tsx` using Next.js `ImageResponse`.
-
-### Favicon PNG variants + apple-icon
-
-See `docs/todo-mobile-icons.md` for the full implementation checklist.
-
-| File | Size |
-|---|---|
-| `app/icon.png` | 32×32 |
-| `app/apple-icon.png` | 180×180 |
-| `public/icon-192.png` | 192×192 |
-| `public/icon-512.png` | 512×512 |
-
-### `manifest.ts`
-
-Blocked on the favicon PNGs above. Implementation is already written in `docs/todo-mobile-icons.md`.
+See `docs/plans/todo-mobile-icons.md` — covers OG image, favicon PNG variants, apple-icon, and `manifest.ts`. All unblock once a logo asset exists.
 
 ---
 
