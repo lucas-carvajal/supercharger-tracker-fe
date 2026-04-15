@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getSuperchargersSoon } from "@/lib/api";
 
-const BASE_URL = "https://soonercharger.com";
+const BASE_URL = process.env.SITE_URL ?? "https://soonercharger.com";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes: MetadataRoute.Sitemap = [

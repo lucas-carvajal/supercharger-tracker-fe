@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://soonercharger.com"),
+  metadataBase: new URL(process.env.SITE_URL ?? "https://soonercharger.com"),
   title: {
     default: "Soonercharger",
     template: "%s | Soonercharger",
