@@ -64,7 +64,7 @@ export class ApiError extends Error {
 
 async function fetchJson(input: string): Promise<Response> {
   return fetch(input, {
-    cache: "no-store",
+    next: { revalidate: 60 },
   });
 }
 
