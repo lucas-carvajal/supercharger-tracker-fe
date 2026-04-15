@@ -28,6 +28,16 @@ export const metadata: Metadata = {
   },
 };
 
+const baseUrl = process.env.SITE_URL ?? "https://soonercharger.com";
+
+const websiteJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "Soonercharger",
+  url: baseUrl,
+  description: "Track the expansion of the worlds' biggest charging network",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -38,7 +48,13 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} dark h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col overflow-x-hidden">{children}</body>
+      <body className="min-h-full flex flex-col overflow-x-hidden">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+        />
+        {children}
+      </body>
     </html>
   );
 }

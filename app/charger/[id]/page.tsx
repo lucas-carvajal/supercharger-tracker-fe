@@ -119,8 +119,32 @@ export default async function ChargerPage({ params }: ChargerPageProps) {
     getPhaseStepState(step.id, charger, currentPhaseStartedAt),
   );
 
+  const baseUrl = process.env.SITE_URL ?? "https://soonercharger.com";
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: baseUrl,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: charger.title,
+        item: `${baseUrl}/charger/${charger.id}`,
+      },
+    ],
+  };
+
   return (
     <div className="mx-auto min-h-full w-full max-w-6xl overflow-x-clip px-6 py-8 sm:px-10 sm:py-12 lg:px-8">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
       <div className="grid gap-6 xl:min-h-[760px] xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
         <div className="grid gap-6 xl:h-full xl:grid-rows-[auto_minmax(0,1fr)]">
           <GlassCard className="overflow-hidden p-0">
