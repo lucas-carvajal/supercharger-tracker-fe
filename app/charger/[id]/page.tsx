@@ -29,11 +29,13 @@ export async function generateMetadata({
     const location = [charger.city, charger.region].filter(Boolean).join(", ");
     const description = `Supercharger${location ? ` in ${location}` : ""} is ${statusLabel}. Track its buildout progress on Soonercharger.`;
 
+    const title = location || charger.title;
+
     return {
-      title: charger.title,
+      title,
       description,
       openGraph: {
-        title: charger.title,
+        title,
         description,
         url: `/charger/${id}`,
       },
