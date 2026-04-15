@@ -8,7 +8,7 @@ import { OverlayNotice } from "@/components/ui/overlay-notice";
 export const metadata: Metadata = {
   title: "Map",
   description:
-    "Interactive map of every Tesla Supercharger coming soon, under construction, or in development across the globe.",
+    "Interactive map of every Tesla Supercharger coming soon across the globe.",
   openGraph: {
     title: "Soonercharger Map",
     description:
