@@ -19,6 +19,10 @@ export const metadata: Metadata = {
     template: "%s | Soonercharger",
   },
   description: "Track the expansion of the worlds' biggest charging network",
+  openGraph: {
+    type: "website",
+    siteName: "Soonercharger",
+  },
 };
 
 export default function RootLayout({
