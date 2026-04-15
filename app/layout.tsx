@@ -13,7 +13,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Soonercharger",
+  metadataBase: new URL("https://soonercharger.com"),
+  title: {
+    default: "Soonercharger",
+    template: "%s | Soonercharger",
+  },
   description: "Track the expansion of the worlds' biggest charging network",
 };
 
