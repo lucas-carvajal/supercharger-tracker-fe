@@ -27,7 +27,7 @@ export async function generateMetadata({
     const charger = await getSupercharger(id);
     const statusLabel = formatStatusLabel(charger.status).toLowerCase();
     const location = [charger.city, charger.region].filter(Boolean).join(", ");
-    const description = `${charger.title}${location ? ` in ${location}` : ""} is ${statusLabel}. Track its buildout progress on Soonercharger.`;
+    const description = `Supercharger${location ? ` in ${location}` : ""} is ${statusLabel}. Track its buildout progress on Soonercharger.`;
 
     return {
       title: charger.title,
