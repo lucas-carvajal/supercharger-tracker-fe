@@ -12,31 +12,34 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const baseUrl = process.env.SITE_URL ?? "https://soonercharger.com";
+
+const siteDescription =
+  "Track every new Tesla Supercharger location worldwide — see construction progress, locations, and more as the network expands.";
+
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.SITE_URL ?? "https://soonercharger.com"),
+  metadataBase: new URL(baseUrl),
   title: {
-    default: "Soonercharger",
+    default: "Soonercharger – Tesla Supercharger Expansion Tracker",
     template: "%s | Soonercharger",
   },
-  description: "Track the expansion of the worlds' biggest charging network",
+  description: siteDescription,
   openGraph: {
     type: "website",
     siteName: "Soonercharger",
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
   },
   themeColor: "#ff9500",
 };
-
-const baseUrl = process.env.SITE_URL ?? "https://soonercharger.com";
 
 const websiteJsonLd = {
   "@context": "https://schema.org",
   "@type": "WebSite",
   name: "Soonercharger",
   url: baseUrl,
-  description: "Track the expansion of the worlds' biggest charging network",
+  description: siteDescription,
 };
 
 export default function RootLayout({
