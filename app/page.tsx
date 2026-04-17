@@ -78,9 +78,6 @@ export default async function Home() {
           initialError={loadError}
         />
       </main>
-      <footer className="mt-24 pb-8 text-center text-sm text-muted-foreground">
-        Thanks Tesla Charging Team! Keep it up ⚡️
-      </footer>
     </div>
   );
 }
