@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { GlassCard } from "@/components/ui/glass-card";
 import { StatusBadge } from "@/components/StatusBadge";
 import { ChargerDetailMap } from "@/components/ChargerDetailMap";
+import { BackToSitesLink } from "@/components/BackToSitesLink";
 
 type ChargerPageProps = {
   params: Promise<{ id: string }>;
@@ -133,6 +134,12 @@ export default async function ChargerPage({ params }: ChargerPageProps) {
       {
         "@type": "ListItem",
         position: 2,
+        name: "All upcoming sites",
+        item: `${baseUrl}/list`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
         name: charger.title,
         item: `${baseUrl}/charger/${charger.id}`,
       },
@@ -145,6 +152,9 @@ export default async function ChargerPage({ params }: ChargerPageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
+      <nav aria-label="Breadcrumb" className="mb-6">
+        <BackToSitesLink />
+      </nav>
       <div className="grid gap-6 xl:min-h-[760px] xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
         <div className="grid gap-6 xl:h-full xl:grid-rows-[auto_minmax(0,1fr)]">
           <GlassCard className="overflow-hidden p-0">
