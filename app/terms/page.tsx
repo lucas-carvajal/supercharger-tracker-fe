@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Terms of Use",
@@ -10,13 +9,6 @@ export const metadata: Metadata = {
 export default function TermsPage() {
   return (
     <div className="mx-auto min-h-full w-full max-w-3xl px-8 py-12 sm:px-12 sm:py-16">
-      <Link
-        href="/"
-        className="mb-10 inline-block text-sm text-muted-foreground transition-colors hover:text-foreground"
-      >
-        ← Back to Soonercharger
-      </Link>
-
       <h1 className="font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
         Terms of Use
       </h1>

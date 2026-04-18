@@ -40,7 +40,7 @@ export function SiteHeader() {
   const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-40 bg-transparent supports-[padding:env(safe-area-inset-top)]:pt-[env(safe-area-inset-top)]">
+    <header className="sticky top-0 z-40 border-b border-white/5 bg-background/40 backdrop-blur-md supports-[padding:env(safe-area-inset-top)]:pt-[env(safe-area-inset-top)]">
       <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between px-4 sm:px-8">
         <Link
           href="/"
@@ -60,7 +60,6 @@ export function SiteHeader() {
               <Link
                 key={href}
                 href={href}
-                aria-label={label}
                 aria-current={isActive ? "page" : undefined}
                 className={cn(
                   "inline-flex size-11 items-center justify-center rounded-full text-sm font-medium transition-colors sm:size-auto sm:gap-2 sm:px-4 sm:py-2",
@@ -70,7 +69,7 @@ export function SiteHeader() {
                 )}
               >
                 <Icon className="size-5 sm:size-4" />
-                <span className="hidden sm:inline">{label}</span>
+                <span className="sr-only sm:not-sr-only">{label}</span>
               </Link>
             );
           })}

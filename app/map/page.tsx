@@ -32,7 +32,7 @@ export default async function MapPage() {
   }
 
   return (
-    <div className="flex h-[calc(100dvh-3.5rem)] flex-col">
+    <div className="flex h-[calc(100dvh-3.5rem-env(safe-area-inset-top))] flex-col">
       {loadError && (
         <OverlayNotice
           title="Map data unavailable"
