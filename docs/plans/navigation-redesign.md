@@ -6,24 +6,39 @@ _Last updated: April 18, 2026_
 
 Soonercharger currently has **no persistent navigation**. Every page hand-rolls
 its own header and exit link, the only chrome shared site-wide is the
-`<Footer>`, and there is no way to search, no way to jump straight from a
-charger detail page back to the list, and no sense of "where am I" once you
-leave the home page.
+`<Footer>`, and there is no way to jump straight from a charger detail page
+back to the list, and no sense of "where am I" once you leave the home page.
+
+On top of that, the home page today does double duty: it's both the brand
+landing and the filterable list. That conflates two jobs.
 
 This document:
 
 1. Audits the current navigation experience and the problems it creates.
 2. Summarises best-practice patterns for map + list apps (Airbnb, Zillow,
    Google Maps, Apple Maps, Linear, Vercel).
-3. Presents **three concrete redesign approaches**, from conservative to
+3. Presents **two concrete redesign approaches**, from conservative to
    ambitious, with trade-offs and a rough scope estimate for each.
 
 The goal is to agree on a direction before implementation begins.
 
+**Route split (by request):**
+
+- **`/` becomes a pure landing page.** General info about the project —
+  what it is, why it exists, headline stats — with two clear calls to
+  action: "Browse the list" and "Open the map". No list or map UI on
+  `/` itself.
+- **`/list` (new) hosts the filterable list** that currently lives on `/`.
+- **`/map` stays as it is** — the interactive global map.
+- **`/charger/[id]` stays as it is** — the detail page.
+
 **Out of scope (by request):**
 
+- **Search.** A proper search box / command palette / typeahead is
+  deferred. The list's existing filter dropdowns are enough for now.
+  Revisit once the nav/layout changes land and we have real usage data.
 - **List ↔ map parity.** The list and the map are intentionally distinct
-  destinations and do not need to share filter / search state.
+  destinations and do not need to share filter state.
 - **Promoting Privacy / Terms.** Those pages stay where they are — linked
   from the footer only.
 
@@ -38,7 +53,7 @@ adaptation, not the other way round. Every section includes an explicit
 
 ## 1. Current state audit
 
-### Route inventory
+### Route inventory (today)
 
 | Route                | Purpose                                     | Layout                                                                            |
 | -------------------- | ------------------------------------------- | --------------------------------------------------------------------------------- |
@@ -49,6 +64,19 @@ adaptation, not the other way round. Every section includes an explicit
 
 Only `components/Footer.tsx` is mounted globally in `app/layout.tsx:65`.
 
+### Route inventory (target)
+
+| Route                | Purpose                                            |
+| -------------------- | -------------------------------------------------- |
+| `/`                  | **Landing** — general info + links to list & map   |
+| `/list` **(new)**    | Filterable list of upcoming sites                  |
+| `/map`               | Interactive global map                             |
+| `/charger/[id]`      | Detail page for one supercharger                   |
+| `/privacy`, `/terms` | Legal (footer links only)                          |
+
+The list UI currently in `app/page.tsx` moves wholesale to `app/list/page.tsx`;
+`/` becomes a short, quiet landing with stats and two CTAs.
+
 ### Observed problems
 
 1. **No global anchor.** The brand "Soonercharger" only appears as an H1 on
@@ -57,18 +85,14 @@ Only `components/Footer.tsx` is mounted globally in `app/layout.tsx:65`.
 2. **Asymmetric navigation.** Home → Map is a button. Map → Home is a
    different-looking button. Detail → List requires clicking the breadcrumb-less
    in-page map and then its map-page link, or using the browser back button.
-3. **No search.** With hundreds of sites there is no way to jump to a city
-   or a named location; the only filtering is two dropdowns on the list
-   (`components/SuperchargerList.tsx:16-81`).
-4. **Above-the-fold cost.** The home hero (headline + subhead + 3-stat grid +
-   "View on map" pill) consumes a full viewport on mobile before the list
-   appears. Returning visitors pay that cost on every visit.
-5. **Detail page dead-ends.** From `/charger/[id]` there is no one-click way
+3. **Home does two jobs.** `/` is both the brand landing and the list. The
+   hero + stats + "View on map" pill push the list below the fold, and a
+   returning user who just wants the list still pays the hero cost.
+4. **Detail page dead-ends.** From `/charger/[id]` there is no one-click way
    back to the list or to see the charger _in context_ on the global map;
    the only map link jumps to the full map page with no way back.
-6. **Mobile ergonomics.** On small screens the only interactive chrome is
-   the two page-specific pills, both positioned in awkward spots for
-   one-handed thumb reach.
+5. **Mobile ergonomics.** On small screens the only interactive chrome is
+   the two page-specific pills, positioned inconsistently across pages.
 
 ### What is good and should be preserved
 
@@ -86,130 +110,157 @@ Any redesign should keep the signal-to-chrome ratio high.
 
 | Pattern                           | Where it shines                                     | Exemplars                       |
 | --------------------------------- | --------------------------------------------------- | ------------------------------- |
-| Persistent top bar + brand        | Orientation, universal search slot                  | Vercel, GitHub, Linear          |
+| Persistent top bar + brand        | Orientation, consistent back-to-home                | Vercel, GitHub, Linear          |
 | Tabbed primary nav (List / Map)   | Two equally-important destinations                  | iOS App Store, Spotify          |
+| Bottom tab bar on mobile          | Thumb-reachable primary nav on small screens        | Most native iOS/Android apps    |
 | Bottom-sheet / drawer on mobile   | Keeps map context while inspecting a pin            | Apple Maps, Google Maps mobile  |
-| Command palette (⌘K)              | Power-user search + nav, minimal chrome             | Linear, Vercel, GitHub          |
-| Floating action dock              | One-handed mobile nav without a full tab bar        | Arc, Raycast, newer iOS apps    |
 | Breadcrumbs on detail pages       | "Where am I, how do I get back"                     | Most content sites              |
+| Short hub landing + CTAs          | Clear entry point for new visitors                  | Vercel, Stripe, Linear marketing|
 
-The three approaches below each lean on a different subset of these patterns
-so the trade-offs are concrete.
+The two approaches below lean on different subsets of these patterns so
+the trade-offs are concrete.
 
 ---
 
-## 3. Three redesign approaches
+## 3. Two redesign approaches
 
-### Approach A — Persistent top bar with primary nav _(conservative, highest ROI)_
+Both approaches share the same **landing + route split** and the same
+**global nav shell**. They differ in how ambitious the `/map` experience
+becomes.
 
-**The idea.** Introduce a thin global header in `app/layout.tsx` with:
+### Shared foundation (both approaches)
+
+**Landing (`/`).** A short, quiet page:
+
+- Brand lockup + one-line tagline.
+- The existing stats strip (total sites, countries, etc.) — this is the
+  most interesting thing about the project for a first-time visitor.
+- Two prominent CTAs: **"Browse the list"** → `/list` and
+  **"Open the map"** → `/map`.
+- Optionally: a small "recently added" or "opening soon" teaser row
+  (3–5 sites) to give the page substance without becoming a full list.
+- Footer as today.
+
+**List (`/list`).** The existing home-page list, moved wholesale.
+Filter dropdowns stay as they are (`components/SuperchargerList.tsx:16-81`).
+
+**Global nav shell.** A thin site-wide header with:
 
 - Brand lockup (logo + "Soonercharger") on the left, always routing to `/`.
-- Two **primary nav links** — "List" and "Map" — that highlight the active
-  route. List and Map remain **separate pages** with their own state; the
-  nav is just a fast switcher.
-- A **search input** on the right that scopes to the current page (filters
-  the list on `/`, pans/zooms / pin-filters on `/map`). Implemented as a
-  simple text filter to start; can grow into a typeahead later.
+- Two **primary nav links** — "List" (→ `/list`) and "Map" (→ `/map`) —
+  that highlight the active route.
 
-Detail pages (`/charger/[id]`) keep the same chrome and gain a
-**breadcrumb** ("← All sites · Berlin, DE") plus a small "Show on map" pill
-that deep-links to `/map?charger=…`.
+On mobile, the top bar is the **only** chrome — no bottom tab bar. It
+shrinks to:
 
-**Layout shape**
+- **Logo only** on the left (the "Soonercharger" wordmark is dropped
+  to save space), still routing to `/`.
+- **Two icon buttons** aligned right — a list glyph for `/list` and a
+  map-pin glyph for `/map`. Each is a 44×44 px tap target; the active
+  route is indicated with a filled background / accent colour.
+
+This keeps the screen fully available for the list or map and matches
+the quiet aesthetic. The thumb-reach tradeoff (top-right is harder on
+large phones) is acceptable given only two destinations and infrequent
+switching.
+
+Detail pages (`/charger/[id]`) gain a **breadcrumb** ("← All sites ·
+Berlin, DE") plus a small "Show on map" pill that deep-links to
+`/map?charger=…`.
+
+**Layout shape (desktop)**
 
 ```
 ┌───────────────────────────────────────────────────────┐
-│  ⚡ Soonercharger    List · Map         🔎 search     │  ← sticky, ~56px
+│  ⚡ Soonercharger          List · Map                 │  ← sticky, ~56px
 ├───────────────────────────────────────────────────────┤
 │                                                       │
-│   (page content — list grid OR fullscreen map)        │
+│   (page content — landing, list, or fullscreen map)   │
 │                                                       │
 └───────────────────────────────────────────────────────┘
 ```
 
-**On mobile**
-
-- Header collapses to ~48px. Layout is: brand-mark only on the left,
-  search **icon** on the right (taps to expand into a full-width
-  search overlay that animates down from the header).
-- The "List · Map" switcher moves to a **bottom tab bar** (~56px,
-  safe-area-aware via `env(safe-area-inset-bottom)`). Two large,
-  thumb-reachable targets — the only persistent bottom chrome.
-- Body uses `min-h-[100dvh]` (not `vh`) so the layout doesn't jump when
-  iOS Safari toolbars hide/show.
-- Footer pushes below the bottom tab bar with extra padding so the
-  privacy/terms links remain reachable but never overlap.
-- Detail-page breadcrumb becomes a single back-arrow button anchored
-  top-left, sized 44×44 px (Apple HIG minimum).
+**On mobile (shared)**
 
 ```
-mobile shape:
-
 ┌──────────────────────────┐
-│  ⚡                  🔎 │  ← top bar (~48px)
+│  ⚡               📋  🗺  │  ← top bar (~48px, logo + nav icons)
 ├──────────────────────────┤
 │                          │
 │      page content        │
 │                          │
-├──────────────────────────┤
-│   List   |    Map        │  ← bottom tab bar (~56px + safe area)
+│                          │
 └──────────────────────────┘
 ```
+
+- Body uses `min-h-[100dvh]` (not `vh`) so the layout doesn't jump when
+  iOS Safari toolbars hide/show.
+- Top bar honours `env(safe-area-inset-top)` so the icons never hide
+  behind the notch / Dynamic Island.
+- Detail-page breadcrumb becomes a single back-arrow button anchored
+  top-left, sized 44×44 px (Apple HIG minimum).
+
+---
+
+### Approach A — Landing split + persistent nav _(conservative, highest ROI)_
+
+**The idea.** Ship exactly the shared foundation above and stop there.
+
+- `/` becomes the info-hub landing.
+- `/list` is the existing list, moved.
+- `/map` is unchanged except for getting the new header / bottom tab
+  bar and losing its bespoke "Back to list" pill.
+- `/charger/[id]` gets the breadcrumb + "Show on map" pill.
+
+No inline map detail panel, no sheet, no new map chrome.
 
 **Why it's good**
 
 - Familiar, discoverable, no learning curve.
-- Solves problems 1, 2, 3, 5, 6 from the audit.
-- Smallest code change: one new `<SiteHeader>` + `<MobileTabBar>` pair
-  plus a per-page search hook. `/` and `/map` stay independent — no
-  shared state to plumb.
-- Fully SSR-friendly. Tab bar and header both render on the server.
-- The bottom tab bar pattern is what iOS / Android users already expect,
-  so it carries no learning cost on the platforms we expect most
-  traffic from.
+- Solves every problem in the audit in one pass.
+- Smallest code change: one new `<SiteHeader>` + `<MobileTabBar>` pair,
+  a new `app/list/page.tsx`, and a slimmed `app/page.tsx`. `/list` and
+  `/map` stay independent — no shared state to plumb.
+- Fully SSR-friendly. Header and tab bar both render on the server.
+- The bottom tab bar pattern is what iOS / Android users already expect.
 
 **Trade-offs**
 
-- Adds ~56px of persistent chrome on desktop and ~48px top + ~56px
-  bottom on mobile. The home hero needs to be shrunk so the layout
-  still feels quiet.
-- Search behaviour differs slightly between the two pages (filter rows
-  vs. filter pins). Needs a clear, consistent placeholder ("Search this
-  list", "Search the map") so the difference doesn't feel like a bug.
-- Two pieces of chrome (top bar + bottom tab bar) on mobile to keep in
-  visual sync.
+- Adds ~56px of persistent chrome on desktop and ~48px on mobile.
+  The landing has no hero to shrink, so this is fine; list and map
+  both absorb it cleanly.
+- Top-right nav icons on mobile trade thumb-reach for screen real
+  estate. Acceptable for two infrequently-switched destinations;
+  revisit if we ever add a third.
+- Moving the list to `/list` changes the canonical URL for the main
+  destination. Audit any hard-coded links in emails / social / OG
+  cards that point at `/` expecting a list.
 
 **Rough scope**: 2–3 days. Adds `components/SiteHeader.tsx`,
-`components/MobileTabBar.tsx`, a small `useScopedSearch` hook, and
-per-page wiring. No routing changes.
+`components/MobileTabBar.tsx`, `app/list/page.tsx`, slims
+`app/page.tsx` to a landing, removes the bespoke headers on `/map`
+and `/charger/[id]`, and adds the breadcrumb component.
 
 ---
 
-### Approach B — Map-first redesign (without merging list and map) _(ambitious, best for exploration)_
+### Approach B — Approach A + map-first detail _(ambitious, best for exploration)_
 
-**The idea.** Keep the home/list page largely as it is today, but **make
-`/map` a richer, exploration-grade experience** with the same global header
-from Approach A.
+**The idea.** Everything in Approach A, plus make `/map` a richer,
+exploration-grade experience.
 
-- The map page gains a **floating search box** (top-left) and a
-  **filter chip strip** (under the header) for status / region — but these
-  are scoped to the map only and are not shared with the list page.
 - Clicking a pin opens an **inline detail panel** (desktop: right-side
   drawer; mobile: bottom sheet with peek / half / full snap points) that
   shows the same data as `/charger/[id]` without losing the map context.
-  A "Open full page" link still routes to `/charger/[id]` for sharing.
-- The list page (`/`) keeps its current layout, just with the new global
-  header on top.
+  An "Open full page" link still routes to `/charger/[id]` for sharing.
+- The list page (`/list`) is untouched beyond the shared foundation.
 - Detail pages keep the breadcrumb from Approach A.
 
 **Layout shape (map page, desktop)**
 
 ```
 ┌───────────────────────────────────────────────────────┐
-│  ⚡ Soonercharger    List · Map         🔎 search     │
+│  ⚡ Soonercharger          List · Map                 │
 ├───────────────────────────────────────────────────────┤
-│  [ Status ▾ ] [ Region ▾ ]                            │
 │                                                       │
 │                                          ┌──────────┐ │
 │                                          │ Berlin…  │ │
@@ -222,8 +273,8 @@ from Approach A.
 
 **On mobile**
 
-- The map page is **fullscreen** under the global header / bottom tab
-  bar from Approach A.
+- The map page is **fullscreen** under the shared top bar / bottom tab
+  bar.
 - Pin tap opens a **bottom sheet** with three snap points:
   - **Peek (~96px)** — title, status badge, distance/region. Map stays
     fully interactive above it.
@@ -234,24 +285,22 @@ from Approach A.
     to `/charger/[id]` for sharing.
 - Sheet supports **swipe down to dismiss** and **tap-outside-to-peek**.
   Background scroll is locked while the sheet is dragging.
-- The map's floating search box uses the **expand-from-icon** pattern
-  (small magnifying glass top-left → full-width pill on tap). Filter
-  chips collapse into a single "Filters" pill that opens its own
-  smaller bottom sheet.
 - Uses `dvh` for sheet heights so iOS toolbar collapse doesn't break
   layouts. Honours `env(safe-area-inset-bottom)` so the sheet handle
   never hides behind the home indicator.
+- The sheet and the bottom tab bar need to coexist: when the sheet is
+  at peek it sits **above** the tab bar; at half/full it slides over
+  the tab bar and the tab bar animates out.
 - Map performance: limit visible pin count via clustering (already
-  hinted at in `components/SuperchargerMap.tsx`), use `prefers-reduced-motion`
-  to skip fly-to animations.
+  hinted at in `components/SuperchargerMap.tsx`), use
+  `prefers-reduced-motion` to skip fly-to animations.
 
 ```
 mobile shape (map page):
 
 ┌──────────────────────────┐
-│  ⚡                  🔎 │
+│  ⚡                      │
 ├──────────────────────────┤
-│  🔎  [Filters ▾]         │
 │                          │
 │        MAP CANVAS        │
 │                          │
@@ -260,7 +309,7 @@ mobile shape (map page):
 │    │ Under construction│  │     drag up for more
 │    ╰──────────────────╯  │
 ├──────────────────────────┤
-│   List   |    Map        │
+│  🏠    List    |   Map   │
 └──────────────────────────┘
 ```
 
@@ -271,13 +320,13 @@ mobile shape (map page):
 - Mobile bottom-sheet is the gold standard for map-driven detail
   (Apple Maps, Google Maps) — the interaction is what iOS/Android
   users already know.
-- Doesn't touch the list page's existing filter UX.
+- Doesn't touch the list page's UX.
 
 **Trade-offs**
 
 - Inline detail panel is a real chunk of client-side work — sheet snap
   points, focus management, scroll containment, iOS Safari viewport
-  edge cases.
+  edge cases, coexistence with the bottom tab bar.
 - Adds JS to the `/map` route; counter to the current "lean SSR" feel
   for that page. Sheet should be code-split so the JS only loads on
   `/map`.
@@ -288,136 +337,25 @@ mobile shape (map page):
   on Android Chrome.
 
 **Rough scope**: ~1 week on top of Approach A. Adds
-`components/MapDetailPanel.tsx` and `components/MapBottomSheet.tsx`, a
-floating search/filter bar for the map page, and refactors the click
-handler in `components/SuperchargerMap.tsx`.
-
----
-
-### Approach C — Minimal floating dock + command palette _(innovative, preserves current aesthetic)_
-
-**The idea.** Skip the persistent top bar entirely. Keep the near-zero
-chrome of today but make navigation **instantaneous and keyboard-first**:
-
-- A **floating action dock** — bottom-centre on mobile, right-edge on
-  desktop — with three icon-only affordances: Home, Map, Search.
-- A **command palette (⌘K / tap Search)** that does:
-  - Instant fuzzy search across sites by title / city / region.
-  - Jump-to commands ("Go to map", "Filter list: under construction",
-    "Back home").
-  - Recent chargers.
-- Detail pages open as a **modal overlay** on top of whatever you were
-  looking at (list or map), preserving scroll position and context. Close
-  the modal and you're back where you were. URL still updates for
-  shareability via Next 16 intercepting routes.
-- Privacy and Terms remain footer-only — they are not command-palette
-  destinations.
-
-**Layout shape**
-
-```
-┌───────────────────────────────────────────────────────┐
-│                                                       │
-│            (page content — no top chrome)             │
-│                                                       │
-│                                                       │
-│                                                       │
-│                                          ┌─────────┐  │
-│                                          │ 🏠 🗺 🔎│  │  ← floating dock
-│                                          └─────────┘  │
-└───────────────────────────────────────────────────────┘
-
-Pressing ⌘K:
-┌─────────────────────────────┐
-│ 🔎 Search sites, commands…  │
-│ ──────────────────────────  │
-│   Berlin-Mitte, DE          │
-│   → Go to map               │
-│   → Filter: under constr…   │
-└─────────────────────────────┘
-```
-
-**On mobile**
-
-- The dock anchors **bottom-centre, ~16px above the home indicator**
-  via `bottom: calc(16px + env(safe-area-inset-bottom))`. Three large
-  (44×44 px) icon targets — 🏠 Home, 🗺 Map, 🔎 Search.
-- Tapping 🔎 opens the command palette as a **full-screen sheet** with
-  the search field pinned to the top under the safe-area top inset,
-  keyboard-aware so the result list doesn't vanish under the on-screen
-  keyboard. (Uses `visualViewport` to recompute height when the
-  keyboard opens.)
-- Detail "modal" on mobile is also a **full-screen sheet** that slides
-  up from the dock. Swipe-down to dismiss; URL still updates so
-  share-sheet copies the canonical `/charger/[id]` link.
-- The dock auto-hides on downward scroll and reappears on upward scroll
-  (mobile-only) so it doesn't cover content the user is reading.
-- No top chrome means more vertical space for the list / map on small
-  screens — the biggest mobile win of this approach.
-
-```
-mobile shape:
-
-┌──────────────────────────┐
-│                          │
-│       page content       │
-│                          │
-│                          │
-│        ┌──────────┐      │
-│        │ 🏠 🗺 🔎 │      │  ← floating dock
-│        └──────────┘      │     (auto-hides on scroll)
-└──────────────────────────┘
-```
-
-**Why it's good**
-
-- Preserves the quiet, data-first visual identity.
-- Ships a genuinely faster experience for return users (one tap or
-  keystroke to anywhere).
-- Modal detail keeps users in their browsing flow.
-- On mobile, the dock occupies ~64px instead of A's ~104px (top + tab
-  bar) — more screen for the actual data.
-- Very modern feel — matches the Linear/Vercel/Raycast aesthetic the
-  current design is clearly gesturing towards.
-
-**Trade-offs**
-
-- Highest novelty → lowest initial discoverability. Needs an onboarding
-  hint ("Press ⌘K to search" on desktop, "Tap 🔎 to find a site" on
-  mobile) and the dock to be the obvious fallback.
-- ⌘K patterns are weak on touch devices; the mobile experience leans
-  almost entirely on the dock + the full-screen palette sheet, so those
-  must be very polished.
-- The "auto-hide on scroll" dock pattern is divisive — needs a setting
-  or careful tuning to avoid feeling jumpy.
-- Modal-over-route is tricky with SSR and SEO. Pattern: render the full
-  page server-side on direct link, render the modal when navigated to
-  from another in-app page (Next 16 intercepting routes,
-  `(.)charger/[id]`).
-- Accessibility bar is higher: focus management, escape / swipe-down
-  handling, screen reader announcements for the palette and modal.
-
-**Rough scope**: 1–2 weeks. Adds a `<CommandPalette>` (shadcn's `Command`
-primitive), `<ActionDock>`, and intercepting-route versions of
-`/charger/[id]`. Search backend endpoint likely needed for fuzzy lookup.
+`components/MapDetailPanel.tsx` and `components/MapBottomSheet.tsx`,
+and refactors the click handler in `components/SuperchargerMap.tsx`.
 
 ---
 
 ## 4. Comparison at a glance
 
-| Dimension                    | A. Top bar + nav | B. Map-first redesign | C. Dock + ⌘K |
-| ---------------------------- | ---------------- | --------------------- | ------------- |
-| Discoverability              | ★★★             | ★★★                  | ★★           |
-| Exploration UX               | ★★              | ★★★                  | ★★           |
-| Preserves current aesthetic  | ★★              | ★★                   | ★★★          |
-| Mobile ergonomics            | ★★★             | ★★★                  | ★★★          |
-| Vertical space on mobile     | ★★ (top+tab)    | ★★ (top+tab)         | ★★★ (dock)   |
-| SEO / SSR friendliness       | ★★★             | ★★                   | ★★           |
-| Implementation risk          | Low              | Medium                | Medium        |
-| Estimated scope              | 2–3 days         | ~1 week (on top of A) | 1–2 weeks     |
-| Solves audit items           | 1, 2, 3, 5, 6    | 1, 2, 3, 5, 6         | 1, 2, 3, 4, 5 |
+| Dimension                    | A. Landing split + nav | B. A + map-first detail |
+| ---------------------------- | ---------------------- | ----------------------- |
+| Discoverability              | ★★★                   | ★★★                    |
+| Exploration UX               | ★★                    | ★★★                    |
+| Preserves current aesthetic  | ★★★                   | ★★                     |
+| Mobile ergonomics            | ★★★                   | ★★★                    |
+| SEO / SSR friendliness       | ★★★                   | ★★                     |
+| Implementation risk          | Low                    | Medium                  |
+| Estimated scope              | 2–3 days               | ~1 week (on top of A)   |
+| Solves audit items           | 1, 2, 3, 4, 5          | 1, 2, 3, 4, 5           |
 
-### Cross-cutting mobile checklist (applies to all three approaches)
+### Cross-cutting mobile checklist (applies to both approaches)
 
 These should be enforced regardless of which approach we pick:
 
@@ -433,12 +371,12 @@ These should be enforced regardless of which approach we pick:
 - [ ] Honour `prefers-reduced-motion` for sheet animations and map
       fly-to.
 - [ ] Lazy-load MapLibre + map tiles only on `/map` and on detail
-      pages — don't ship them on the list page.
+      pages — don't ship them on the landing or list pages.
 - [ ] Test on real devices: iPhone SE (small), iPhone 15 Pro
       (Dynamic Island), Pixel 7 (Android Chrome gesture nav), and
       iPad (split-view widths).
 - [ ] Verify the layout on iOS Safari with both URL-bar visible and
-      collapsed; the bottom chrome (tab bar / dock) must not jump.
+      collapsed; the sticky top bar must not jump.
 - [ ] Lighthouse mobile score ≥ 90 for Performance and Accessibility
       after the change.
 
@@ -446,27 +384,24 @@ These should be enforced regardless of which approach we pick:
 
 ## 5. Recommendation
 
-Start with **Approach A** as a foundation — it removes the most painful nav
-gaps in a few days without a rewrite. Once the global header and per-page
-search exist, either B or C becomes an incremental layer rather than a
-rebuild:
+Ship **Approach A** first. It is the whole foundation: landing split,
+`/list` route, global header, mobile bottom tab bar, detail breadcrumb.
+That single change removes every item in the audit in a few days and
+is fully reversible.
 
-- If user feedback skews toward "I want to explore the map", layer B's
-  inline detail panel onto the existing map page.
-- If feedback skews toward "I just want to find _my_ site fast", layer C's
-  command palette on top of (or in place of) the header.
-
-This keeps the first shippable change small and reversible, while leaving
-the door open to the more ambitious designs.
+Then, if real usage shows people want to explore the map more deeply
+(long sessions on `/map`, bounces from `/charger/[id]` back to `/map`),
+layer on **Approach B**'s inline detail panel. B is additive — it
+doesn't rework A, it just makes the map page richer.
 
 ---
 
 ## 6. Open questions for discussion
 
-1. Is the current hero (headline + stats strip) core brand or is it
-   decoration we can shrink? Approach A–C all compress or remove it.
-2. Is a search backend endpoint in scope, or do we fuzzy-match client-side
-   against the `/api/superchargers/soon` payload?
-3. Any SEO constraints to be aware of for Approach C? Modal detail pages
-   need intercepting routes configured carefully so `/charger/[id]` stays
-   crawlable as a full page on direct link.
+1. Does the landing need the "recently added / opening soon" teaser row,
+   or is brand + stats + two CTAs enough? Simpler is probably better for
+   a first cut.
+2. Anything linking externally to `/` expecting the list (OG cards,
+   social posts, emails)? If yes, decide whether to redirect or accept
+   that those land on the new landing page (which then links to the list
+   one tap away).

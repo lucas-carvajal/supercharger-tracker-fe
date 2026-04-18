@@ -1,83 +1,68 @@
 import Link from "next/link";
-import { MapPin } from "lucide-react";
+import { List, MapPin } from "lucide-react";
 import { connection } from "next/server";
-import {
-  getSuperchargersSoon,
-  getStats,
-  type SuperchargersSoonResponse,
-} from "@/lib/api";
-import { SuperchargerList } from "@/components/SuperchargerList";
+import { getStats, getSuperchargersSoon } from "@/lib/api";
 
 export default async function Home() {
   await connection();
 
-  let data: SuperchargersSoonResponse = { items: [], total: 0 };
-  let loadError = false;
+  const [stats, soon] = await Promise.all([
+    getStats().catch(() => null),
+    getSuperchargersSoon(1).catch(() => null),
+  ]);
 
-  try {
-    [data] = await Promise.all([getSuperchargersSoon(30)]);
-  } catch {
-    loadError = true;
-  }
-
-  const stats = await getStats().catch(() => null);
+  const totalComingSoon = stats?.total_active ?? soon?.total ?? null;
+  const underConstruction = stats?.by_status["UNDER_CONSTRUCTION"] ?? null;
+  const inDevelopment = stats?.by_status["IN_DEVELOPMENT"] ?? null;
 
   return (
-    <div className="mx-auto min-h-full w-full max-w-6xl overflow-x-clip px-8 py-12 sm:px-12 sm:py-16 lg:px-8">
-      <header className="mb-16 text-center">
-        <p className="mb-5 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-          Tesla Supercharger Buildout Tracker
-        </p>
-        <h1 className="font-heading text-3xl font-bold tracking-tight text-foreground sm:text-6xl lg:text-8xl">
-          Soonercharger
-        </h1>
-        <p className="mx-auto mt-6 text-base text-muted-foreground sm:text-xl lg:text-2xl">
-          Track the expansion of the world&apos;s biggest charging network in
-          real time
-        </p>
-        <div className="mt-8 grid grid-cols-3 gap-4 sm:flex sm:flex-wrap sm:justify-center sm:gap-x-10 sm:gap-y-4">
-          <div className="flex flex-col items-center">
-            <span className="text-2xl font-bold tabular-nums text-foreground sm:text-4xl">
-              {stats?.total_active ?? data.total}
-            </span>
-            <span className="mt-1 text-xs text-muted-foreground sm:text-sm">
-              coming soon
-            </span>
-          </div>
-          <div className="flex flex-col items-center">
-            <span className="text-2xl font-bold tabular-nums text-foreground sm:text-4xl">
-              {stats?.by_status["UNDER_CONSTRUCTION"] ?? "—"}
-            </span>
-            <span className="mt-1 text-xs text-muted-foreground sm:text-sm">
-              under construction
-            </span>
-          </div>
-          <div className="flex flex-col items-center">
-            <span className="text-2xl font-bold tabular-nums text-foreground sm:text-4xl">
-              {stats?.by_status["IN_DEVELOPMENT"] ?? "—"}
-            </span>
-            <span className="mt-1 text-xs text-muted-foreground sm:text-sm">
-              in development
-            </span>
-          </div>
-        </div>
-        <div className="mt-8">
-          <Link
-            href="/map"
-            className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-6 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-white/10 hover:text-foreground"
-          >
-            <MapPin className="size-4" />
-            View on map
-          </Link>
-        </div>
-      </header>
-      <main>
-        <SuperchargerList
-          initialItems={data.items}
-          initialTotal={data.total}
-          initialError={loadError}
-        />
-      </main>
+    <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col items-center justify-center px-6 py-16 text-center sm:px-10 sm:py-24">
+      <p className="mb-5 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
+        Tesla Supercharger Buildout Tracker
+      </p>
+      <h1 className="font-heading text-[clamp(2.75rem,9vw,6rem)] font-bold leading-[0.95] tracking-tight text-foreground">
+        Soonercharger
+      </h1>
+      <p className="mx-auto mt-6 max-w-2xl text-base text-muted-foreground sm:text-xl">
+        Track the expansion of the world&apos;s biggest charging network in real
+        time.
+      </p>
+
+      <div className="mt-10 grid w-full grid-cols-3 gap-4 sm:flex sm:flex-wrap sm:justify-center sm:gap-x-10 sm:gap-y-4">
+        <Stat value={totalComingSoon} label="coming soon" />
+        <Stat value={underConstruction} label="under construction" />
+        <Stat value={inDevelopment} label="in development" />
+      </div>
+
+      <div className="mt-12 flex w-full flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
+        <Link
+          href="/list"
+          className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 sm:w-auto"
+        >
+          <List className="size-4" />
+          Browse the list
+        </Link>
+        <Link
+          href="/map"
+          className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-emerald-500 px-6 py-3 text-sm font-semibold text-emerald-950 transition-colors hover:bg-emerald-400 sm:w-auto"
+        >
+          <MapPin className="size-4" />
+          Open the map
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+function Stat({ value, label }: { value: number | null; label: string }) {
+  return (
+    <div className="flex flex-col items-center">
+      <span className="text-2xl font-bold tabular-nums text-foreground sm:text-4xl">
+        {value ?? "—"}
+      </span>
+      <span className="mt-1 text-xs text-muted-foreground sm:text-sm">
+        {label}
+      </span>
     </div>
   );
 }

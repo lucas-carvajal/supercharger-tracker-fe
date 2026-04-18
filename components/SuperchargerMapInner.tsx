@@ -225,7 +225,7 @@ export default function SuperchargerMapInner({
   }
 
   return (
-    <Map center={[0, 20]} zoom={2} className="h-full w-full rounded-2xl">
+    <Map center={[0, 20]} zoom={2} className="h-full w-full">
       <PointSource geojson={geojson} onPointClick={handlePointClick} />
       <MapFocus item={selectedCharger} />
       <MapControls position="bottom-right" showZoom showCompass />
