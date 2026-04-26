@@ -12,7 +12,12 @@ export function BackToSitesLink() {
       href="/list"
       onClick={(e) => {
         if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
-        if (typeof window !== "undefined" && window.history.length > 1) {
+
+        const referrer = document.referrer ? new URL(document.referrer) : null;
+        if (
+          referrer?.origin === window.location.origin &&
+          window.history.length > 1
+        ) {
           e.preventDefault();
           router.back();
         }
