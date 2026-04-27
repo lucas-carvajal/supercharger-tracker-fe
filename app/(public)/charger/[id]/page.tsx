@@ -69,6 +69,12 @@ const PHASE_STEPS = [
   },
 ] as const;
 
+// These sections are hidden until we have richer per-site history. Today the
+// first-seen/current-phase dates are often identical across imported sites,
+// which makes the timeline look misleadingly uniform for customers.
+const showTimingSummary = false;
+const showBuildoutTimeline = false;
+
 export default async function ChargerPage({ params }: ChargerPageProps) {
   await connection();
 
@@ -170,16 +176,21 @@ export default async function ChargerPage({ params }: ChargerPageProps) {
                 </div>
 
                 <div className="mt-8 flex flex-wrap gap-4">
-                  <SummaryItem
-                    label="First seen"
-                    value={formatDateTime(charger.first_seen_at)}
-                    className="min-w-[15rem] flex-1"
-                  />
-                  <SummaryItem
-                    label={`${formatStatusLabel(charger.status)} for`}
-                    value={currentPhaseDuration}
-                    className="min-w-[15rem] flex-1"
-                  />
+                  {showTimingSummary && (
+                    <>
+                      {/* Restore these when first-seen and phase-duration data varies enough to be customer-useful. */}
+                      <SummaryItem
+                        label="First seen"
+                        value={formatDateTime(charger.first_seen_at)}
+                        className="min-w-[15rem] flex-1"
+                      />
+                      <SummaryItem
+                        label={`${formatStatusLabel(charger.status)} for`}
+                        value={currentPhaseDuration}
+                        className="min-w-[15rem] flex-1"
+                      />
+                    </>
+                  )}
                   <a
                     href={charger.tesla_url}
                     target="_blank"
@@ -201,56 +212,60 @@ export default async function ChargerPage({ params }: ChargerPageProps) {
             </div>
           </GlassCard>
 
-          <GlassCard className="flex flex-col xl:min-h-0">
-            <div className="mb-8">
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                Timeline
-              </p>
-              <h2 className="mt-2 text-2xl font-semibold text-foreground">
-                Buildout progress
-              </h2>
-            </div>
+          {showBuildoutTimeline && (
+            // Restore this card when imported status history has distinct, trustworthy milestone dates.
+            <GlassCard className="flex flex-col xl:min-h-0">
+              <div className="mb-8">
+                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                  Timeline
+                </p>
+                <h2 className="mt-2 text-2xl font-semibold text-foreground">
+                  Buildout progress
+                </h2>
+              </div>
 
-            <div className="flex flex-col xl:flex-1 xl:justify-center">
-              {timelineStates.map((step, index) => (
-                <div key={step.id} className="flex gap-5">
-                  <div className="flex w-11 flex-col items-center">
-                    <span
-                      className={cn(
-                        "flex size-11 items-center justify-center rounded-full border text-lg shadow-sm",
-                        step.variant,
-                      )}
-                    >
-                      {step.emoji}
-                    </span>
-                    {index < timelineStates.length - 1 && (
+              <div className="flex flex-col xl:flex-1 xl:justify-center">
+                {timelineStates.map((step, index) => (
+                  <div key={step.id} className="flex gap-5">
+                    <div className="flex w-11 flex-col items-center">
                       <span
                         className={cn(
-                          "my-3 h-18 rounded-full",
-                          step.isReached && timelineStates[index + 1]?.isReached
-                            ? "w-0.5 bg-emerald-400/60"
-                            : "w-px bg-white/10",
+                          "flex size-11 items-center justify-center rounded-full border text-lg shadow-sm",
+                          step.variant,
                         )}
-                      />
-                    )}
+                      >
+                        {step.emoji}
+                      </span>
+                      {index < timelineStates.length - 1 && (
+                        <span
+                          className={cn(
+                            "my-3 h-18 rounded-full",
+                            step.isReached &&
+                              timelineStates[index + 1]?.isReached
+                              ? "w-0.5 bg-emerald-400/60"
+                              : "w-px bg-white/10",
+                          )}
+                        />
+                      )}
+                    </div>
+                    <div
+                      className={cn(
+                        "pt-1",
+                        index < timelineStates.length - 1 && "pb-6",
+                      )}
+                    >
+                      <p className="text-base font-semibold text-foreground">
+                        {step.label}
+                      </p>
+                      <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                        {step.copy}
+                      </p>
+                    </div>
                   </div>
-                  <div
-                    className={cn(
-                      "pt-1",
-                      index < timelineStates.length - 1 && "pb-6",
-                    )}
-                  >
-                    <p className="text-base font-semibold text-foreground">
-                      {step.label}
-                    </p>
-                    <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                      {step.copy}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </GlassCard>
+                ))}
+              </div>
+            </GlassCard>
+          )}
         </div>
 
         <GlassCard className="overflow-hidden p-0 xl:flex xl:h-full xl:min-h-0 xl:flex-col">
