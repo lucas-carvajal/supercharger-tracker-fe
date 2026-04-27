@@ -1,32 +1,25 @@
 import { NextRequest } from "next/server";
+import { ApiError, querySuperchargersSoon } from "@/lib/api";
 
 export async function GET(request: NextRequest) {
-  const baseUrl = process.env.BACKEND_URL;
-  if (!baseUrl) {
-    return Response.json({ error: "API not configured" }, { status: 500 });
-  }
-
   const { searchParams } = request.nextUrl;
-  const upstream = new URLSearchParams();
-  upstream.set("limit", searchParams.get("limit") ?? "20");
-  upstream.set("offset", searchParams.get("offset") ?? "0");
+  const limit = Number.parseInt(searchParams.get("limit") ?? "20", 10);
+  const offset = Number.parseInt(searchParams.get("offset") ?? "0", 10);
   const status = searchParams.get("status");
-  if (status) upstream.set("status", status);
   const region = searchParams.get("region");
-  if (region) upstream.set("region", region);
 
-  const res = await fetch(
-    `${baseUrl}/superchargers/soon?${upstream}`,
-    { cache: "no-store" }
-  );
-
-  if (!res.ok) {
-    return Response.json(
-      { error: `Upstream error: ${res.status}` },
-      { status: res.status }
-    );
+  try {
+    const data = await querySuperchargersSoon({
+      limit,
+      offset,
+      status,
+      region,
+    }, { noStore: true });
+    return Response.json(data);
+  } catch (error) {
+    const statusCode = error instanceof ApiError ? error.status : 500;
+    const message =
+      error instanceof Error ? error.message : "Unknown upstream error";
+    return Response.json({ error: message }, { status: statusCode });
   }
-
-  const data = await res.json();
-  return Response.json(data);
 }

@@ -13,7 +13,7 @@ export default function TermsPage() {
         Terms of Use
       </h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        Last updated: April 17, 2026
+        Last updated: April 26, 2026
       </p>
 
       <div className="mt-10 space-y-8 text-base leading-7 text-muted-foreground">
@@ -40,6 +40,11 @@ export default function TermsPage() {
             data for time-sensitive decisions. Always verify with official Tesla
             sources before planning a trip or making any decision based on
             charging availability.
+          </p>
+          <p className="mt-3">
+            In development and testing environments, we may serve synthetic mock
+            data when explicitly enabled by configuration. Mock data is for
+            demonstration only and does not represent live network conditions.
           </p>
         </section>
 

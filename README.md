@@ -2,11 +2,15 @@
 
 Frontend for tracking Tesla Supercharger locations that are coming soon, under construction, or in development.
 
-## Required Environment Variables
+## Environment Variables
 
-The app requires the following environment variable:
+Required unless mock mode is enabled:
 
 - `BACKEND_URL`: Base URL for the backend API, for example `http://localhost:8080` locally or `http://rust-be:8080` in Coolify.
+
+Optional:
+
+- `ENABLE_MOCK_DATA`: Set to `true` to serve built-in mock data from the server layer instead of the backend API. Defaults to `false`.
 
 Create a local env file from the example:
 
@@ -31,6 +35,12 @@ If you want the app to load real data locally, set `BACKEND_URL` before starting
 BACKEND_URL=http://localhost:8080 npm run dev
 ```
 
+If you don't have backend data available and want to use mock data:
+
+```bash
+ENABLE_MOCK_DATA=true npm run dev
+```
+
 ## Docker
 
 Build the production image locally:
@@ -52,7 +62,7 @@ Then open [http://localhost:3000](http://localhost:3000).
 
 Notes:
 
-- `BACKEND_URL` is required at runtime. The app uses it in server-rendered pages and route handlers.
+- `BACKEND_URL` is required at runtime only when `ENABLE_MOCK_DATA` is not `true`.
 - `http://host.docker.internal:8080` works on Docker Desktop. On Linux, replace it with an address your container can reach for the backend API.
 - The container listens on port `3000`.
 
