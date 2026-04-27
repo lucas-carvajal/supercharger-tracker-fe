@@ -1,5 +1,11 @@
 import { GlassCard } from "@/components/ui/glass-card";
 
+// Match the details page: hide timing placeholders until the real customer UI
+// has enough varied history data to make these sections meaningful.
+// TODO enable this again once we have meaningful data
+const showTimingSummary = false;
+const showBuildoutTimeline = false;
+
 function SummarySkeleton() {
   return (
     <GlassCard className="overflow-hidden p-0">
@@ -7,12 +13,14 @@ function SummarySkeleton() {
         <div className="h-24 w-2/3 max-w-[24rem] animate-pulse rounded bg-white/10 sm:h-28" />
         <div className="mt-5 h-8 w-40 animate-pulse rounded-full bg-white/10" />
         <div className="mt-8 flex flex-wrap gap-4">
-          {Array.from({ length: 3 }).map((_, index) => (
-            <div
-              key={index}
-              className="h-28 min-w-[15rem] flex-1 animate-pulse rounded-2xl bg-white/[0.03]"
-            />
-          ))}
+          {showTimingSummary &&
+            Array.from({ length: 2 }).map((_, index) => (
+              <div
+                key={index}
+                className="h-28 min-w-[15rem] flex-1 animate-pulse rounded-2xl bg-white/[0.03]"
+              />
+            ))}
+          <div className="h-28 min-w-[15rem] flex-1 animate-pulse rounded-2xl bg-white/[0.03]" />
         </div>
       </div>
     </GlassCard>
@@ -47,7 +55,10 @@ export default function Loading() {
       <div className="grid gap-6 xl:min-h-[760px] xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
         <div className="grid gap-6 xl:h-full xl:grid-rows-[auto_minmax(0,1fr)]">
           <SummarySkeleton />
-          <TimelineSkeleton />
+          {showBuildoutTimeline && (
+            // Restore this placeholder with the timeline card when milestone history is ready.
+            <TimelineSkeleton />
+          )}
         </div>
         <GlassCard className="overflow-hidden p-0 xl:flex xl:h-full xl:min-h-0 xl:flex-col">
           <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
