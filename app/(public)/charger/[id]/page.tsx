@@ -72,6 +72,7 @@ const PHASE_STEPS = [
 // These sections are hidden until we have richer per-site history. Today the
 // first-seen/current-phase dates are often identical across imported sites,
 // which makes the timeline look misleadingly uniform for customers.
+// TODO enable this again once we have meaningful data
 const showTimingSummary = false;
 const showBuildoutTimeline = false;
 

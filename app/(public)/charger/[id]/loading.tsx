@@ -2,6 +2,7 @@ import { GlassCard } from "@/components/ui/glass-card";
 
 // Match the details page: hide timing placeholders until the real customer UI
 // has enough varied history data to make these sections meaningful.
+// TODO enable this again once we have meaningful data
 const showTimingSummary = false;
 const showBuildoutTimeline = false;
 
