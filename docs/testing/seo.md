@@ -27,11 +27,11 @@ Test the fallback: point the API at a bad URL locally and confirm the sitemap st
 
 ## 4. Robots
 
-Visit `/robots.txt` — should show `User-agent: *` / `Allow: /` and reference `${SITE_URL}/sitemap.xml`.
+Visit `/robots.txt` — should show `User-agent: *`, disallow `/admin`, allow `/`, and reference `${SITE_URL}/sitemap.xml`.
 
 ## 5. Structured data (JSON-LD)
 
-**Quick:** view-source and confirm the `<script type="application/ld+json">` blocks — `WebSite` on every page, `BreadcrumbList` on charger detail pages.
+**Quick:** view-source and confirm the `<script type="application/ld+json">` blocks — `WebSite` on public pages only, `BreadcrumbList` on charger detail pages.
 
 **Validation:** paste a production URL into [Google's Rich Results Test](https://search.google.com/test/rich-results) or the [Schema.org Validator](https://validator.schema.org/). Both should parse the JSON without errors and list the detected schema types.
 

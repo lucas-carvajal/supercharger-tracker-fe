@@ -1,7 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { Footer } from "@/components/Footer";
-import { SiteHeader } from "@/components/SiteHeader";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -39,14 +37,6 @@ export const viewport: Viewport = {
   themeColor: "#0a0c14",
 };
 
-const websiteJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "WebSite",
-  name: "Soonercharger",
-  url: baseUrl,
-  description: siteDescription,
-};
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -58,13 +48,7 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} dark h-full antialiased`}
     >
       <body className="min-h-full flex flex-col overflow-x-hidden">
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
-        />
-        <SiteHeader />
         {children}
-        <Footer />
       </body>
     </html>
   );
