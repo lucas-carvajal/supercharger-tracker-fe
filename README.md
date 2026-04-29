@@ -70,6 +70,7 @@ Notes:
 - `BACKEND_URL` is required at runtime. The app uses it in server-rendered pages and route handlers.
 - `ADMIN_USERNAME`, `ADMIN_PASSWORD`, and `ADMIN_SESSION_SECRET` control access to `/admin`.
 - `RUST_INTERNAL_IMPORT_SECRET` is required when running admin imports.
+- See [docs/admin-auth.md](docs/admin-auth.md) for the admin session token and import auth flow.
 - `http://host.docker.internal:8080` works on Docker Desktop. On Linux, replace it with an address your container can reach for the backend API.
 - The container listens on port `3000`.
 
