@@ -26,7 +26,7 @@ Both the map page and each charger detail page declare a canonical URL via `alte
 
 ## Robots
 
-[app/robots.ts](../app/robots.ts) generates `/robots.txt`, allows all crawlers, and points them at the sitemap.
+[app/robots.ts](../app/robots.ts) generates `/robots.txt`, allows crawlers for the public site, disallows `/admin`, and points them at the sitemap.
 
 **Why it matters:** it's the first file a crawler looks at — telling it where the sitemap lives speeds up discovery of new pages.
 
@@ -34,7 +34,7 @@ Both the map page and each charger detail page declare a canonical URL via `alte
 
 Two schemas are injected:
 
-- **`WebSite`** on every page via the root layout — tells search engines the site's identity (name, URL, description).
+- **`WebSite`** on public pages via the public layout — tells search engines the site's identity (name, URL, description).
 - **`BreadcrumbList`** on each charger detail page — a two-level `Home → {charger}` breadcrumb.
 
 **Why it matters:** structured data unlocks enhanced search features. `WebSite` is a prerequisite for Google sitelinks; `BreadcrumbList` makes Google show a hierarchy in results instead of the raw URL, which usually improves click-through.
@@ -47,4 +47,4 @@ Two schemas are injected:
 
 ## `SITE_URL` env var
 
-The root metadata, sitemap, robots, and breadcrumb JSON-LD all read `process.env.SITE_URL`, defaulting to `https://soonercharger.com`. If the canonical domain ever changes, set this in the deployment environment and everything stays consistent.
+The root metadata, sitemap, robots, public `WebSite` JSON-LD, and breadcrumb JSON-LD all read `process.env.SITE_URL`, defaulting to `https://soonercharger.com`. If the canonical domain ever changes, set this in the deployment environment and everything stays consistent.

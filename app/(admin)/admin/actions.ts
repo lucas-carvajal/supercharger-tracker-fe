@@ -4,21 +4,28 @@ import { redirect } from "next/navigation";
 import { clearAdminSession, createAdminSession, requireAdminSession } from "@/lib/admin-auth";
 import type { ImportFormState, LoginFormState } from "@/app/(admin)/admin/form-state";
 
+function logAdminConfigError(message: string) {
+  console.error(`[admin] ${message}`);
+}
+
 export async function login(
   _previousState: LoginFormState,
   formData: FormData,
 ): Promise<LoginFormState> {
   const expectedPassword = process.env.ADMIN_PASSWORD;
   if (!expectedPassword) {
+    logAdminConfigError("ADMIN_PASSWORD is not configured.");
+
     return {
-      error: "ADMIN_PASSWORD is not configured on this deployment.",
+      error: "Sign in is temporarily unavailable.",
     };
   }
+  const expectedUsername = process.env.ADMIN_USERNAME ?? "admin52662";
 
   const username = String(formData.get("username") ?? "").trim();
   const password = String(formData.get("password") ?? "");
 
-  if (username !== "admin" || password !== expectedPassword) {
+  if (username !== expectedUsername || password !== expectedPassword) {
     return {
       error: "Invalid username or password.",
     };
@@ -31,8 +38,10 @@ export async function login(
       error instanceof Error &&
       error.message === "ADMIN_SESSION_SECRET is not set"
     ) {
+      logAdminConfigError("ADMIN_SESSION_SECRET is not configured.");
+
       return {
-        error: "ADMIN_SESSION_SECRET is not configured on this deployment.",
+        error: "Sign in is temporarily unavailable.",
       };
     }
 
@@ -55,8 +64,10 @@ export async function runImport(
 
   const backendUrl = process.env.BACKEND_URL;
   if (!backendUrl) {
+    logAdminConfigError("BACKEND_URL is not configured for admin import.");
+
     return {
-      error: "BACKEND_URL is not configured.",
+      error: "Import is temporarily unavailable.",
       result: null,
       response: null,
     };
@@ -64,8 +75,12 @@ export async function runImport(
 
   const internalSecret = process.env.RUST_INTERNAL_IMPORT_SECRET;
   if (!internalSecret) {
+    logAdminConfigError(
+      "RUST_INTERNAL_IMPORT_SECRET is not configured for admin import.",
+    );
+
     return {
-      error: "RUST_INTERNAL_IMPORT_SECRET is not configured.",
+      error: "Import is temporarily unavailable.",
       result: null,
       response: null,
     };
@@ -115,7 +130,9 @@ export async function runImport(
       body: JSON.stringify(parsedPayload),
       cache: "no-store",
     });
-  } catch {
+  } catch (error) {
+    console.error("[admin] Could not reach Rust backend import endpoint.", error);
+
     return {
       error: "Could not reach the Rust backend import endpoint.",
       result: null,

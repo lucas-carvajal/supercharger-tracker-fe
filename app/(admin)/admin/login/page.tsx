@@ -18,10 +18,6 @@ export default async function AdminLoginPage() {
         <h2 className="mt-3 font-heading text-3xl font-semibold tracking-tight text-white">
           Sign in to admin
         </h2>
-        <p className="mt-3 text-sm leading-6 text-muted-foreground">
-          This area is intentionally unlinked from the public site. Use the admin
-          password to access imports and protected actions.
-        </p>
 
         <div className="mt-8">
           <LoginForm />

@@ -25,7 +25,6 @@ export function LoginForm() {
         <input
           id="username"
           name="username"
-          defaultValue="admin"
           autoComplete="username"
           className="w-full rounded-2xl border border-white/12 bg-white/6 px-4 py-3 text-sm text-white outline-none transition focus:border-primary/60 focus:ring-3 focus:ring-primary/20"
         />

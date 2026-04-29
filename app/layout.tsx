@@ -37,14 +37,6 @@ export const viewport: Viewport = {
   themeColor: "#0a0c14",
 };
 
-const websiteJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "WebSite",
-  name: "Soonercharger",
-  url: baseUrl,
-  description: siteDescription,
-};
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -56,10 +48,6 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} dark h-full antialiased`}
     >
       <body className="min-h-full flex flex-col overflow-x-hidden">
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
-        />
         {children}
       </body>
     </html>
