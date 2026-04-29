@@ -19,11 +19,13 @@ Create a local env file from the example:
 cp .env.example .env.local
 ```
 
-Generate a strong session secret with:
+Generate a 256-bit session secret for `ADMIN_SESSION_SECRET` with:
 
 ```bash
 openssl rand -hex 32
 ```
+
+Copy the output into your local `.env.local` or deployment environment.
 
 ## Local Development
 
