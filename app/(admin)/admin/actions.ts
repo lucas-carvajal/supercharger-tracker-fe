@@ -1,5 +1,6 @@
 "use server";
 
+import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
 import { clearAdminSession, createAdminSession, requireAdminSession } from "@/lib/admin-auth";
 import type { ImportFormState, LoginFormState } from "@/app/(admin)/admin/form-state";
@@ -176,6 +177,8 @@ export async function runImport(
     typeof parsedResponse.status === "string"
       ? parsedResponse.status
       : "completed";
+
+  refresh();
 
   return {
     error: null,
