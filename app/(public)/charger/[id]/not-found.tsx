@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { ArrowLeft, MapPinned } from "lucide-react";
+import { MapPinned } from "lucide-react";
+import { GoBackButton } from "@/components/GoBackButton";
 import { GlassCard } from "@/components/ui/glass-card";
 
 export default function ChargerNotFound() {
@@ -17,13 +18,7 @@ export default function ChargerNotFound() {
             It may have been removed, opened already, or the link may be wrong.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <Link
-              href="/"
-              className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-white/10"
-            >
-              <ArrowLeft className="size-4" />
-              Back to list
-            </Link>
+            <GoBackButton />
             <Link
               href="/map"
               className="inline-flex items-center gap-2 rounded-full border border-white/10 px-5 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:border-white/15 hover:text-foreground"
