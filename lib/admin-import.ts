@@ -1,10 +1,12 @@
 export type CurrentImportVersionState =
   | {
       currentVersion: number;
+      nextExpectedVersion: number;
       error: null;
     }
   | {
       currentVersion: null;
+      nextExpectedVersion: null;
       error: string;
     };
 
@@ -21,6 +23,7 @@ export async function getCurrentImportVersion(): Promise<CurrentImportVersionSta
 
     return {
       currentVersion: null,
+      nextExpectedVersion: null,
       error: "Current import version is temporarily unavailable.",
     };
   }
@@ -33,6 +36,7 @@ export async function getCurrentImportVersion(): Promise<CurrentImportVersionSta
 
     return {
       currentVersion: null,
+      nextExpectedVersion: null,
       error: "Current import version is temporarily unavailable.",
     };
   }
@@ -55,6 +59,7 @@ export async function getCurrentImportVersion(): Promise<CurrentImportVersionSta
 
     return {
       currentVersion: null,
+      nextExpectedVersion: null,
       error: "Could not reach the backend import version endpoint.",
     };
   }
@@ -73,6 +78,7 @@ export async function getCurrentImportVersion(): Promise<CurrentImportVersionSta
 
     return {
       currentVersion: null,
+      nextExpectedVersion: null,
       error: "Current import version is temporarily unavailable.",
     };
   }
@@ -81,7 +87,9 @@ export async function getCurrentImportVersion(): Promise<CurrentImportVersionSta
     !parsedResponse ||
     typeof parsedResponse !== "object" ||
     !("current_version" in parsedResponse) ||
-    typeof parsedResponse.current_version !== "number"
+    typeof parsedResponse.current_version !== "number" ||
+    !("next_expected_version" in parsedResponse) ||
+    typeof parsedResponse.next_expected_version !== "number"
   ) {
     console.error(
       "[admin] Import version endpoint returned an invalid response.",
@@ -89,12 +97,14 @@ export async function getCurrentImportVersion(): Promise<CurrentImportVersionSta
 
     return {
       currentVersion: null,
+      nextExpectedVersion: null,
       error: "Current import version is temporarily unavailable.",
     };
   }
 
   return {
     currentVersion: parsedResponse.current_version,
+    nextExpectedVersion: parsedResponse.next_expected_version,
     error: null,
   };
 }

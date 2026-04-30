@@ -42,7 +42,7 @@ export default async function AdminPage() {
               <p className="mt-3 text-sm leading-6 text-muted-foreground">
                 The next incremental import must use scrape run version{" "}
                 <span className="font-semibold text-white">
-                  {currentImportVersion.currentVersion + 1}
+                  {currentImportVersion.nextExpectedVersion}
                 </span>
                 .
               </p>
