@@ -10,7 +10,7 @@ The app uses these environment variables:
 - `ADMIN_USERNAME`: Username for the `/admin/login` form. Defaults to `admin52662`.
 - `ADMIN_PASSWORD`: Password for the `/admin/login` form.
 - `ADMIN_SESSION_SECRET`: Long random secret used to sign the admin session cookie.
-- `RUST_INTERNAL_IMPORT_SECRET`: Shared secret sent from the admin import form to the backend import endpoint.
+- `RUST_INTERNAL_IMPORT_SECRET`: Shared secret sent from the admin panel to the backend import endpoints.
 - `SITE_URL`: Public canonical URL for metadata, sitemap, and robots. Defaults to `https://soonercharger.com`.
 
 Create a local env file from the example:
@@ -71,7 +71,7 @@ Notes:
 
 - `BACKEND_URL` is required at runtime. The app uses it in server-rendered pages and route handlers.
 - `ADMIN_USERNAME`, `ADMIN_PASSWORD`, and `ADMIN_SESSION_SECRET` control access to `/admin`.
-- `RUST_INTERNAL_IMPORT_SECRET` is required when running admin imports.
+- `RUST_INTERNAL_IMPORT_SECRET` is required when running admin imports or reading the current import version.
 - See [docs/admin-auth.md](docs/admin-auth.md) for the admin session token and import auth flow.
 - `http://host.docker.internal:8080` works on Docker Desktop. On Linux, replace it with an address your container can reach for the backend API.
 - The container listens on port `3000`.

@@ -75,6 +75,8 @@ The admin import form is a protected server action:
 
 The backend must validate `RUST_INTERNAL_IMPORT_SECRET` independently. The browser never receives this secret.
 
+The admin dashboard also reads the current scrape run version from `${BACKEND_URL}/admin/import/current-version` during server rendering. That request uses the same `X-Admin-Internal-Secret` header and displays only the numeric `current_version` and `next_expected_version` values.
+
 If more import routes are added later, keep them under `/admin/import/...` on the backend and protect them with the same internal-secret pattern.
 
 ## Errors And Logging

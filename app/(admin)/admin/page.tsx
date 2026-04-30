@@ -3,9 +3,11 @@ import { ImportForm } from "@/components/admin/ImportForm";
 import { SubmitButton } from "@/components/admin/SubmitButton";
 import { GlassCard } from "@/components/ui/glass-card";
 import { requireAdminSession } from "@/lib/admin-auth";
+import { getCurrentImportVersion } from "@/lib/admin-import";
 
 export default async function AdminPage() {
   await requireAdminSession();
+  const currentImportVersion = await getCurrentImportVersion();
 
   return (
     <div className="grid w-full gap-6 lg:grid-cols-[minmax(0,0.72fr)_minmax(19rem,0.28fr)]">
@@ -28,6 +30,35 @@ export default async function AdminPage() {
       </GlassCard>
 
       <div className="space-y-6">
+        <GlassCard className="rounded-[2rem] border border-white/10 bg-white/7 p-6">
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary/80">
+            Current version
+          </p>
+          {currentImportVersion.currentVersion !== null ? (
+            <>
+              <p className="mt-3 font-heading text-4xl font-semibold tracking-tight text-white">
+                {currentImportVersion.currentVersion}
+              </p>
+              <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                The next incremental import must use scrape run version{" "}
+                <span className="font-semibold text-white">
+                  {currentImportVersion.nextExpectedVersion}
+                </span>
+                .
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="mt-3 font-heading text-2xl font-semibold tracking-tight text-white">
+                Unavailable
+              </p>
+              <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                {currentImportVersion.error}
+              </p>
+            </>
+          )}
+        </GlassCard>
+
         <GlassCard className="rounded-[2rem] border border-white/10 bg-white/7 p-6">
           <h2 className="font-heading text-xl font-semibold text-white">
             Session controls
