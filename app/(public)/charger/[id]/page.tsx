@@ -3,12 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { ExternalLink, TriangleAlert } from "lucide-react";
-import {
-  ApiError,
-  getSupercharger,
-  type SuperchargerDetail,
-  type SuperchargerHistoryStatus,
-} from "@/lib/api";
+import { ApiError, getSupercharger, type SuperchargerDetail } from "@/lib/api";
 import { formatUtcDateShort } from "@/lib/date-display";
 import { sentenceCaseHistoryStatusLabel } from "@/lib/supercharger-history-status";
 import { cn } from "@/lib/utils";
@@ -28,7 +23,9 @@ export async function generateMetadata({
 
   try {
     const charger = await getSupercharger(id);
-    const statusLabel = sentenceCaseHistoryStatusLabel(charger.status).toLowerCase();
+    const statusLabel = sentenceCaseHistoryStatusLabel(
+      charger.status,
+    ).toLowerCase();
     const location = [charger.city, charger.region].filter(Boolean).join(", ");
     const description = `Supercharger${location ? ` in ${location}` : ""} is ${statusLabel}. Track its buildout progress on Soonercharger.`;
 
