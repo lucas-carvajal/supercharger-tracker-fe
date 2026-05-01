@@ -13,7 +13,7 @@ export default function PrivacyPage() {
         Privacy Policy
       </h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        Last updated: April 17, 2026
+        Last updated: May 1, 2026
       </p>
 
       <div className="mt-10 space-y-8 text-base leading-7 text-muted-foreground">
@@ -23,7 +23,7 @@ export default function PrivacyPage() {
           </h2>
           <p>
             Soonercharger does not actively collect personal information. We do
-            not use analytics services, tracking pixels, or advertising networks.
+            not use advertising networks or sell visitor data.
           </p>
           <p className="mt-3">
             However, the following data is collected automatically as part of
@@ -45,6 +45,14 @@ export default function PrivacyPage() {
                 Privacy Policy
               </a>{" "}
               applies.
+            </li>
+            <li>
+              <strong className="text-foreground">
+                Cloudflare Web Analytics
+              </strong>{" "}
+              — We use Cloudflare Web Analytics to understand aggregate site
+              traffic, such as page views and referrers. This analytics script
+              is provided by Cloudflare and is not used for advertising.
             </li>
             <li>
               <strong className="text-foreground">Server logs</strong> — Our
@@ -74,7 +82,7 @@ export default function PrivacyPage() {
           <p>
             Supercharger location data displayed on this site is sourced from
             publicly available Tesla information. We do not share any visitor
-            data with Tesla or any other third party.
+            data with Tesla.
           </p>
         </section>
 
@@ -83,8 +91,8 @@ export default function PrivacyPage() {
             Future changes
           </h2>
           <p>
-            We may add analytics or visitor-count features in the future. This
-            policy will be updated before any such changes take effect.
+            We may update analytics or visitor-count features in the future.
+            This policy will be updated before any material changes take effect.
           </p>
         </section>
 
