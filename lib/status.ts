@@ -1,7 +1,7 @@
-import type { SuperchargerHistoryStatus } from "@/lib/api";
+import type { SuperchargerStatus } from "@/lib/api";
 
 export const STATUS_CONFIG: Record<
-  SuperchargerHistoryStatus,
+  SuperchargerStatus,
   { label: string; hex: string; dot: string; badge: string }
 > = {
   IN_DEVELOPMENT: {

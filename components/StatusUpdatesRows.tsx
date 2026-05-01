@@ -5,7 +5,7 @@ import { ExternalLink } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type {
   RecentStatusChange,
-  SuperchargerHistoryStatus,
+  SuperchargerStatus,
 } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { GlassCard } from "@/components/ui/glass-card";
@@ -65,8 +65,8 @@ function StatusTransitionBadges({
   newStatus,
   transitionLabel,
 }: {
-  oldStatus: SuperchargerHistoryStatus;
-  newStatus: SuperchargerHistoryStatus;
+  oldStatus: SuperchargerStatus;
+  newStatus: SuperchargerStatus;
   transitionLabel: string;
 }) {
   const showFrom = oldStatus !== "UNKNOWN";

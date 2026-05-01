@@ -1,8 +1,8 @@
-import type { SuperchargerHistoryStatus } from "@/lib/api";
+import type { SuperchargerStatus } from "@/lib/api";
 
 /** Matches legacy charger-detail copy (sentence-style labels). */
 export function sentenceCaseHistoryStatusLabel(
-  status: SuperchargerHistoryStatus,
+  status: SuperchargerStatus,
 ): string {
   switch (status) {
     case "IN_DEVELOPMENT":
@@ -20,8 +20,8 @@ export function sentenceCaseHistoryStatusLabel(
 }
 
 export function transitionDisplayText(params: {
-  old_status: SuperchargerHistoryStatus;
-  new_status: SuperchargerHistoryStatus;
+  old_status: SuperchargerStatus;
+  new_status: SuperchargerStatus;
 }): string {
   const newLabel = sentenceCaseHistoryStatusLabel(params.new_status);
   if (params.old_status === "UNKNOWN") {

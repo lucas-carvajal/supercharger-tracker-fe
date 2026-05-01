@@ -1,10 +1,7 @@
 export type SuperchargerStatus =
   | "IN_DEVELOPMENT"
   | "UNDER_CONSTRUCTION"
-  | "UNKNOWN";
-
-export type SuperchargerHistoryStatus =
-  | SuperchargerStatus
+  | "UNKNOWN"
   | "OPENED"
   | "REMOVED";
 
@@ -32,8 +29,8 @@ export interface SuperchargerMapItem {
 }
 
 export interface SuperchargerStatusHistoryEntry {
-  old_status: SuperchargerHistoryStatus | null;
-  new_status: SuperchargerHistoryStatus;
+  old_status: SuperchargerStatus | null;
+  new_status: SuperchargerStatus;
   changed_at: string;
 }
 
@@ -57,8 +54,8 @@ export interface RecentStatusChange {
   title: string;
   city: string | null;
   region: string | null;
-  old_status: SuperchargerHistoryStatus;
-  new_status: SuperchargerHistoryStatus;
+  old_status: SuperchargerStatus;
+  new_status: SuperchargerStatus;
   changed_at: string;
 }
 
