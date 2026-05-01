@@ -52,6 +52,21 @@ export interface StatsResponse {
   as_of: string | null;
 }
 
+export interface RecentStatusChange {
+  id: string;
+  title: string;
+  city: string | null;
+  region: string | null;
+  old_status: SuperchargerHistoryStatus;
+  new_status: SuperchargerHistoryStatus;
+  changed_at: string;
+}
+
+export interface RecentStatusChangesResponse {
+  total: number;
+  items: RecentStatusChange[];
+}
+
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -108,4 +123,20 @@ export async function getSupercharger(id: string): Promise<SuperchargerDetail> {
   if (!baseUrl) throw new Error("BACKEND_URL is not set");
 
   return fetchData<SuperchargerDetail>(`${baseUrl}/superchargers/soon/${id}`);
+}
+
+export async function getRecentStatusChanges(
+  limit = 20,
+  offset = 0,
+): Promise<RecentStatusChangesResponse> {
+  const baseUrl = process.env.BACKEND_URL;
+  if (!baseUrl) throw new Error("BACKEND_URL is not set");
+
+  const params = new URLSearchParams({
+    limit: String(limit),
+    offset: String(offset),
+  });
+  return fetchData<RecentStatusChangesResponse>(
+    `${baseUrl}/superchargers/soon/recent-changes?${params}`,
+  );
 }

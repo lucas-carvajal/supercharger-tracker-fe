@@ -1,4 +1,30 @@
 @import "tailwindcss";
+
+@keyframes status-up-float {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 0) scale(0.85);
+  }
+  12% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -140%) scale(1.08);
+  }
+}
+
+.status-update-float {
+  animation: status-up-float 1.05s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .status-update-float {
+    animation: none;
+    opacity: 0.9;
+    transform: translate(-50%, -48%);
+  }
+}
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
