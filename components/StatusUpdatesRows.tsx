@@ -158,12 +158,21 @@ function StatusUpdateRow({ change }: { change: RecentStatusChange }) {
 
   if (change.new_status === "REMOVED") {
     return (
-      <GlassCard className="relative overflow-visible p-5 shadow-none">
+      <GlassCard
+        className={cn(
+          "relative overflow-visible p-5 shadow-none",
+          // Match link-row affordances on /status-updates (hover, press on inner button).
+          "motion-safe:transition-[transform,background-color,border-color]",
+          "motion-safe:[&:has(button:active)]:scale-[0.99]",
+          "[&:focus-within]:border-white/[0.12]",
+          "hover:border-white/[0.15] hover:bg-white/[0.06]",
+        )}
+      >
         <button
           type="button"
           aria-label="Show acknowledgement for removed charger"
           className={cn(
-            "w-full rounded-2xl text-left outline-none active:opacity-95",
+            "w-full cursor-pointer rounded-2xl text-left outline-none active:opacity-95",
             "focus-visible:ring-2 focus-visible:ring-primary/35",
           )}
           onClick={handleRemovedTap}

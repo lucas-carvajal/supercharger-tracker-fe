@@ -48,8 +48,7 @@ export default async function StatusUpdatesPage() {
           Charger Status Updates
         </h1>
         <p className="mt-3 max-w-prose text-sm text-muted-foreground sm:text-base">
-          The 20 most recent public status changes across tracked upcoming
-          Superchargers (openings, removals, and phase changes).
+          See all recent status changes from tracked Supercharger locations.
         </p>
       </header>
 
