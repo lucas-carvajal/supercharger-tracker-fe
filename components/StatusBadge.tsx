@@ -1,9 +1,9 @@
 import { cn } from "@/lib/utils";
 import { STATUS_CONFIG } from "@/lib/status";
-import type { SuperchargerStatus } from "@/lib/api";
+import type { SuperchargerHistoryStatus } from "@/lib/api";
 
 interface StatusBadgeProps {
-  status: SuperchargerStatus;
+  status: SuperchargerHistoryStatus;
   size?: "sm" | "md";
   className?: string;
 }

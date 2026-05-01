@@ -3,9 +3,13 @@
 import Link from "next/link";
 import { ExternalLink } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { RecentStatusChange } from "@/lib/api";
+import type {
+  RecentStatusChange,
+  SuperchargerHistoryStatus,
+} from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { GlassCard } from "@/components/ui/glass-card";
+import { StatusBadge } from "@/components/StatusBadge";
 import { formatUtcDateShort } from "@/lib/date-display";
 import { transitionDisplayText } from "@/lib/supercharger-history-status";
 
@@ -56,9 +60,43 @@ export function StatusUpdatesRows({ changes }: StatusUpdatesRowsProps) {
   );
 }
 
+function StatusTransitionBadges({
+  oldStatus,
+  newStatus,
+  transitionLabel,
+}: {
+  oldStatus: SuperchargerHistoryStatus;
+  newStatus: SuperchargerHistoryStatus;
+  transitionLabel: string;
+}) {
+  const showFrom = oldStatus !== "UNKNOWN";
+
+  return (
+    <div
+      role="group"
+      aria-label={transitionLabel}
+      className="flex flex-wrap items-center gap-2 text-left"
+    >
+      {showFrom ? (
+        <>
+          <StatusBadge status={oldStatus} size="sm" />
+          <span className="text-muted-foreground" aria-hidden>
+            →
+          </span>
+        </>
+      ) : (
+        <span className="text-muted-foreground" aria-hidden>
+          →
+        </span>
+      )}
+      <StatusBadge status={newStatus} size="sm" />
+    </div>
+  );
+}
+
 function StatusUpdateRow({ change }: { change: RecentStatusChange }) {
   const title = change.title.trim() ? change.title.trim() : "Unnamed location";
-  const transition = transitionDisplayText({
+  const transitionLabel = transitionDisplayText({
     old_status: change.old_status,
     new_status: change.new_status,
   });
@@ -89,7 +127,11 @@ function StatusUpdateRow({ change }: { change: RecentStatusChange }) {
           />
         ) : null}
       </div>
-      <p className="text-sm text-muted-foreground">{transition}</p>
+      <StatusTransitionBadges
+        oldStatus={change.old_status}
+        newStatus={change.new_status}
+        transitionLabel={transitionLabel}
+      />
       <time
         dateTime={change.changed_at.slice(0, 10)}
         className="text-xs tabular-nums text-muted-foreground"
