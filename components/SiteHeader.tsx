@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import { Activity, List, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -39,9 +40,37 @@ function BrandMark() {
 
 export function SiteHeader() {
   const pathname = usePathname();
+  const [isVisible, setIsVisible] = useState(true);
+  const lastScrollY = useRef(0);
+
+  useEffect(() => {
+    lastScrollY.current = window.scrollY;
+
+    const onScroll = () => {
+      const currentScrollY = window.scrollY;
+      const scrollingUp = currentScrollY < lastScrollY.current;
+      const nearTop = currentScrollY < 12;
+
+      if (nearTop || scrollingUp) {
+        setIsVisible(true);
+      } else {
+        setIsVisible(false);
+      }
+
+      lastScrollY.current = currentScrollY;
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-white/5 bg-background/40 backdrop-blur-md supports-[padding:env(safe-area-inset-top)]:pt-[env(safe-area-inset-top)]">
+    <header
+      className={cn(
+        "sticky top-0 z-40 border-b border-white/5 bg-background/40 backdrop-blur-md transition-transform duration-200 supports-[padding:env(safe-area-inset-top)]:pt-[env(safe-area-inset-top)]",
+        isVisible ? "translate-y-0" : "-translate-y-full",
+      )}
+    >
       <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between px-4 sm:px-8">
         <Link
           href="/"
