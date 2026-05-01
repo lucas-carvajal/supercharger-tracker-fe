@@ -12,6 +12,7 @@ The app uses these environment variables:
 - `ADMIN_SESSION_SECRET`: Long random secret used to sign the admin session cookie.
 - `RUST_INTERNAL_IMPORT_SECRET`: Shared secret sent from the admin panel to the backend import endpoints.
 - `SITE_URL`: Public canonical URL for metadata, sitemap, and robots. Defaults to `https://soonercharger.com`.
+- `NEXT_PUBLIC_CLOUDFLARE_ANALYTICS_TOKEN`: Public Cloudflare Web Analytics token. This is embedded at build time; omit it to disable analytics.
 
 Create a local env file from the example:
 
@@ -88,6 +89,7 @@ ADMIN_USERNAME=admin52662
 ADMIN_PASSWORD=replace-with-strong-unique-password
 ADMIN_SESSION_SECRET=replace-with-a-long-random-secret
 RUST_INTERNAL_IMPORT_SECRET=replace-with-the-backend-import-secret
+NEXT_PUBLIC_CLOUDFLARE_ANALYTICS_TOKEN=replace-with-cloudflare-web-analytics-token
 ```
 
 ## Troubleshooting

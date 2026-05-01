@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -13,6 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 const baseUrl = process.env.SITE_URL ?? "https://soonercharger.com";
+const cloudflareAnalyticsToken =
+  process.env.NEXT_PUBLIC_CLOUDFLARE_ANALYTICS_TOKEN;
 
 const siteDescription =
   "Track every new Tesla Supercharger location worldwide — see construction progress, locations, and more as the network expands.";
@@ -49,6 +52,13 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col overflow-x-hidden">
         {children}
+        {cloudflareAnalyticsToken ? (
+          <Script
+            src="https://static.cloudflareinsights.com/beacon.min.js"
+            strategy="afterInteractive"
+            data-cf-beacon={`{"token":"${cloudflareAnalyticsToken}","spa":true}`}
+          />
+        ) : null}
       </body>
     </html>
   );
