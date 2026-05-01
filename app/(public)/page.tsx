@@ -51,7 +51,7 @@ export default async function Home() {
         </Link>
         <Link
           href="/status-updates"
-          className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/15 bg-white/5 px-6 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-white/10 sm:w-auto"
+          className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-sky-500 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-sky-400 sm:w-auto"
         >
           <Activity className="size-4" />
           Status updates
