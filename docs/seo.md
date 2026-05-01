@@ -8,19 +8,19 @@ An overview of the SEO work on Soonercharger — what's in place, how it works, 
 
 The root layout ([app/layout.tsx](../app/layout.tsx)) sets the site-wide defaults: title template, description, OpenGraph, Twitter card, and theme color. Every page inherits these and can override what it needs.
 
-The map page ([app/map/page.tsx](../app/map/page.tsx)) and the charger detail page ([app/charger/[id]/page.tsx](../app/charger/[id]/page.tsx)) set their own titles and descriptions — the charger page builds them dynamically from the charger's location and current status, so every charger ends up with a unique, relevant preview when shared or shown in search results.
+The list page ([app/(public)/list/page.tsx](../app/(public)/list/page.tsx)), map page ([app/(public)/map/page.tsx](../app/(public)/map/page.tsx)), status updates page ([app/(public)/status-updates/page.tsx](../app/(public)/status-updates/page.tsx)), and charger detail page ([app/(public)/charger/[id]/page.tsx](../app/(public)/charger/[id]/page.tsx)) set their own titles and descriptions — the charger page builds them dynamically from the charger's location and current status, so every charger ends up with a unique, relevant preview when shared or shown in search results.
 
 **Why it matters:** good metadata is what makes search result snippets and social link previews look like something you'd actually click.
 
 ## Canonical URLs
 
-Both the map page and each charger detail page declare a canonical URL via `alternates.canonical`.
+Public list, map, status updates, and charger detail routes declare canonical URLs via `alternates.canonical`.
 
 **Why it matters:** prevents Google from treating the same page under different query strings or paths as duplicate content.
 
 ## Sitemap
 
-[app/sitemap.ts](../app/sitemap.ts) generates `/sitemap.xml` dynamically. It includes the home page, the map page, and every charger page (pulled from the API). Each entry gets a sensible priority and change frequency, and charger entries use `last_scraped_at` as the last-modified date so Google knows when something actually changed.
+[app/sitemap.ts](../app/sitemap.ts) generates `/sitemap.xml` dynamically. It includes the home page, the list page, the map page, the status updates page, and every charger page (pulled from the API). Each entry gets a sensible priority and change frequency, and charger entries use `last_scraped_at` as the last-modified date so Google knows when something actually changed.
 
 **Why it matters:** a charger page is not linked from the home page, so without a sitemap Google would struggle to discover them. The sitemap gives every charger a direct path to the index.
 

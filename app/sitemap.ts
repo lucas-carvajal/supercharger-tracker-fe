@@ -12,10 +12,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 1.0,
     },
     {
+      url: `${BASE_URL}/list`,
+      lastModified: new Date(),
+      changeFrequency: "daily",
+      priority: 0.85,
+    },
+    {
       url: `${BASE_URL}/map`,
       lastModified: new Date(),
       changeFrequency: "daily",
       priority: 0.8,
+    },
+    {
+      url: `${BASE_URL}/status-updates`,
+      lastModified: new Date(),
+      changeFrequency: "daily",
+      priority: 0.75,
     },
   ];
 

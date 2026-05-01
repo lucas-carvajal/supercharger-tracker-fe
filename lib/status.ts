@@ -16,6 +16,18 @@ export const STATUS_CONFIG: Record<
     dot: "bg-orange-500", // strong and visible
     badge: "border-orange-500/30 bg-orange-500/10 text-orange-500",
   },
+  OPENED: {
+    label: "Opened",
+    hex: "#22c55e",
+    dot: "bg-green-400",
+    badge: "border-green-400/30 bg-green-400/10 text-green-400",
+  },
+  REMOVED: {
+    label: "Removed",
+    hex: "#f87171",
+    dot: "bg-red-400",
+    badge: "border-red-400/30 bg-red-400/10 text-red-400",
+  },
   UNKNOWN: {
     label: "Unknown",
     hex: "#71717a",

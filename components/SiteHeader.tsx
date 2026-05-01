@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { List, MapPin } from "lucide-react";
+import { Activity, List, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
   { href: "/list", label: "List", Icon: List },
   { href: "/map", label: "Map", Icon: MapPin },
+  { href: "/status-updates", label: "Updates", Icon: Activity },
 ] as const;
 
 function BrandMark() {

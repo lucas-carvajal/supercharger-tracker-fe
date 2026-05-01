@@ -3,12 +3,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { ExternalLink, TriangleAlert } from "lucide-react";
-import {
-  ApiError,
-  getSupercharger,
-  type SuperchargerDetail,
-  type SuperchargerHistoryStatus,
-} from "@/lib/api";
+import { ApiError, getSupercharger, type SuperchargerDetail } from "@/lib/api";
+import { formatUtcDateShort } from "@/lib/date-display";
+import { sentenceCaseHistoryStatusLabel } from "@/lib/supercharger-history-status";
 import { cn } from "@/lib/utils";
 import { GlassCard } from "@/components/ui/glass-card";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -26,7 +23,9 @@ export async function generateMetadata({
 
   try {
     const charger = await getSupercharger(id);
-    const statusLabel = formatStatusLabel(charger.status).toLowerCase();
+    const statusLabel = sentenceCaseHistoryStatusLabel(
+      charger.status,
+    ).toLowerCase();
     const location = [charger.city, charger.region].filter(Boolean).join(", ");
     const description = `Supercharger${location ? ` in ${location}` : ""} is ${statusLabel}. Track its buildout progress on Soonercharger.`;
 
@@ -182,11 +181,11 @@ export default async function ChargerPage({ params }: ChargerPageProps) {
                       {/* Restore these when first-seen and phase-duration data varies enough to be customer-useful. */}
                       <SummaryItem
                         label="First seen"
-                        value={formatDateTime(charger.first_seen_at)}
+                        value={formatUtcDateShort(charger.first_seen_at)}
                         className="min-w-[15rem] flex-1"
                       />
                       <SummaryItem
-                        label={`${formatStatusLabel(charger.status)} for`}
+                        label={`${sentenceCaseHistoryStatusLabel(charger.status)} for`}
                         value={currentPhaseDuration}
                         className="min-w-[15rem] flex-1"
                       />
@@ -349,12 +348,12 @@ function getPhaseStepState(
 
     return {
       id: stepId,
-      label: formatStatusLabel(stepId),
+      label: sentenceCaseHistoryStatusLabel(stepId),
       emoji: getPhaseEmoji(stepId),
       variant:
         "border-2 border-emerald-400/70 bg-emerald-400/6 text-emerald-200",
       isReached: true,
-      copy: `Started ${formatDateTime(startedAt)}`,
+      copy: `Started ${formatUtcDateShort(startedAt)}`,
     };
   }
 
@@ -363,21 +362,21 @@ function getPhaseStepState(
 
     return {
       id: stepId,
-      label: formatStatusLabel(stepId),
+      label: sentenceCaseHistoryStatusLabel(stepId),
       emoji: getPhaseEmoji(stepId),
       variant:
         "border-2 border-emerald-400/70 bg-emerald-400/6 text-emerald-200",
       isReached: true,
       copy:
         stepId === "OPENED"
-          ? `Opened ${formatDateTime(inferredReachedAt)}`
-          : `Started ${formatDateTime(inferredReachedAt)}`,
+          ? `Opened ${formatUtcDateShort(inferredReachedAt)}`
+          : `Started ${formatUtcDateShort(inferredReachedAt)}`,
     };
   }
 
   return {
     id: stepId,
-    label: formatStatusLabel(stepId),
+    label: sentenceCaseHistoryStatusLabel(stepId),
     emoji: getPhaseEmoji(stepId),
     variant: "border-2 border-white/12 bg-white/[0.03] text-muted-foreground",
     isReached: false,
@@ -391,22 +390,6 @@ function getPhaseEmoji(
   if (status === "IN_DEVELOPMENT") return "📋";
   if (status === "UNDER_CONSTRUCTION") return "🚧";
   return "⚡";
-}
-
-function formatStatusLabel(status: SuperchargerHistoryStatus) {
-  if (status === "IN_DEVELOPMENT") return "In development";
-  if (status === "UNDER_CONSTRUCTION") return "Under construction";
-  if (status === "OPENED") return "Opened";
-  if (status === "REMOVED") return "Removed";
-  return "Unknown";
-}
-
-function formatDateTime(iso: string) {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(new Date(iso));
 }
 
 function formatElapsed(startIso: string, endIso: string) {

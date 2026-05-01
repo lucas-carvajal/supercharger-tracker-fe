@@ -1,10 +1,7 @@
 export type SuperchargerStatus =
   | "IN_DEVELOPMENT"
   | "UNDER_CONSTRUCTION"
-  | "UNKNOWN";
-
-export type SuperchargerHistoryStatus =
-  | SuperchargerStatus
+  | "UNKNOWN"
   | "OPENED"
   | "REMOVED";
 
@@ -32,8 +29,8 @@ export interface SuperchargerMapItem {
 }
 
 export interface SuperchargerStatusHistoryEntry {
-  old_status: SuperchargerHistoryStatus | null;
-  new_status: SuperchargerHistoryStatus;
+  old_status: SuperchargerStatus | null;
+  new_status: SuperchargerStatus;
   changed_at: string;
 }
 
@@ -50,6 +47,21 @@ export interface StatsResponse {
   total_active: number;
   by_status: Partial<Record<SuperchargerStatus, number>>;
   as_of: string | null;
+}
+
+export interface RecentStatusChange {
+  id: string;
+  title: string;
+  city: string | null;
+  region: string | null;
+  old_status: SuperchargerStatus;
+  new_status: SuperchargerStatus;
+  changed_at: string;
+}
+
+export interface RecentStatusChangesResponse {
+  total: number;
+  items: RecentStatusChange[];
 }
 
 export class ApiError extends Error {
@@ -72,14 +84,17 @@ async function fetchData<T>(input: string): Promise<T> {
   const res = await fetchJson(input);
 
   if (!res.ok) {
-    throw new ApiError(`Fetch failed: ${res.status} ${res.statusText}`, res.status);
+    throw new ApiError(
+      `Fetch failed: ${res.status} ${res.statusText}`,
+      res.status,
+    );
   }
 
   return res.json() as Promise<T>;
 }
 
 export async function getSuperchargersSoon(
-  limit = 20
+  limit = 20,
 ): Promise<SuperchargersSoonResponse> {
   const baseUrl = process.env.BACKEND_URL;
   if (!baseUrl) throw new Error("BACKEND_URL is not set");
@@ -108,4 +123,20 @@ export async function getSupercharger(id: string): Promise<SuperchargerDetail> {
   if (!baseUrl) throw new Error("BACKEND_URL is not set");
 
   return fetchData<SuperchargerDetail>(`${baseUrl}/superchargers/soon/${id}`);
+}
+
+export async function getRecentStatusChanges(
+  limit = 20,
+  offset = 0,
+): Promise<RecentStatusChangesResponse> {
+  const baseUrl = process.env.BACKEND_URL;
+  if (!baseUrl) throw new Error("BACKEND_URL is not set");
+
+  const params = new URLSearchParams({
+    limit: String(limit),
+    offset: String(offset),
+  });
+  return fetchData<RecentStatusChangesResponse>(
+    `${baseUrl}/superchargers/soon/recent-changes?${params}`,
+  );
 }

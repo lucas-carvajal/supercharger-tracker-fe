@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { List, MapPin } from "lucide-react";
+import { Activity, List, MapPin } from "lucide-react";
 import { connection } from "next/server";
 import { getStats, getSuperchargersSoon } from "@/lib/api";
 
@@ -34,7 +34,7 @@ export default async function Home() {
         <Stat value={inDevelopment} label="in development" />
       </div>
 
-      <div className="mt-12 flex w-full flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
+      <div className="mt-12 flex w-full flex-col items-stretch justify-center gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-center sm:gap-4">
         <Link
           href="/list"
           className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 sm:w-auto"
@@ -48,6 +48,13 @@ export default async function Home() {
         >
           <MapPin className="size-4" />
           Open the map
+        </Link>
+        <Link
+          href="/status-updates"
+          className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-sky-500 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-sky-400 sm:w-auto"
+        >
+          <Activity className="size-4" />
+          Status updates
         </Link>
       </div>
     </div>
