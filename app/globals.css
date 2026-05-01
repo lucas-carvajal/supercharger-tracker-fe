@@ -197,7 +197,7 @@
     @apply bg-background text-foreground;
   }
   html {
-    @apply font-sans bg-background overflow-x-hidden;
+    @apply font-sans bg-background overflow-x-clip;
   }
   .maplibregl-popup-content {
     @apply bg-transparent! shadow-none! p-0! rounded-none!;

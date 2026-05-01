@@ -67,7 +67,7 @@ export function SiteHeader() {
   return (
     <header
       className={cn(
-        "sticky top-0 z-40 border-b border-white/5 bg-background/40 backdrop-blur-md transition-transform duration-200 supports-[padding:env(safe-area-inset-top)]:pt-[env(safe-area-inset-top)]",
+        "sticky top-0 z-40 border-b border-white/5 bg-background/40 backdrop-blur-md transition-transform duration-200 motion-reduce:transition-none supports-[padding:env(safe-area-inset-top)]:pt-[env(safe-area-inset-top)]",
         isVisible ? "translate-y-0" : "-translate-y-full",
       )}
     >

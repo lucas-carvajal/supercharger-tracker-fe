@@ -216,8 +216,8 @@ export function SuperchargerList({
         />
       )}
 
-      {/* Floating filter pill */}
-      <div className="z-10 mb-8 flex justify-center sm:sticky sm:top-20">
+      {/* Filters */}
+      <div className="mb-8 flex justify-center">
         <div className="flex w-full items-center overflow-hidden rounded-2xl border border-white/15 bg-background/90 shadow-2xl backdrop-blur-xl sm:w-auto">
           <FilterSelect
             value={activeStatus ?? ""}
