@@ -17,6 +17,7 @@ Agreed behavior and UX details:
   - `REMOVED`: click shows a sad emoji that floats upward (no navigation)
   - any other value: click opens internal charger detail page `/charger/[id]`
 - Reuse existing status-label mapping and color/badge conventions where appropriate
+- Add explicit empty state when API returns zero items
 
 ## API contract summary
 
@@ -44,7 +45,8 @@ Status values expected in this feed:
 
 1. **Data layer updates (`lib/api.ts`)**
    - Add `RecentStatusChange` and `RecentStatusChangesResponse` interfaces.
-   - Add `getRecentStatusChanges(limit = 20)` helper targeting `/superchargers/soon/recent-changes`.
+   - Add `getRecentStatusChanges(limit = 20, offset = 0)` helper targeting `/superchargers/soon/recent-changes`.
+   - Ensure request always includes both query params (`limit` and `offset`) even when defaults are used.
    - Keep existing fetch/revalidate conventions used by other public data helpers.
 
 2. **New public route (`app/(public)/status-updates/page.tsx`)**
@@ -54,6 +56,7 @@ Status values expected in this feed:
      - Canonical and OpenGraph URL set to `/status-updates`
    - Fetch exactly 20 rows server-side.
    - Render failure state using existing overlay/error style patterns.
+   - Render explicit empty state copy when fetch succeeds but `items.length === 0`.
 
 3. **Status updates UI component**
    - Add a dedicated component (for example `components/StatusUpdatesList.tsx`) that renders the fixed result set.
@@ -61,7 +64,8 @@ Status values expected in this feed:
      - Charger title (with fallback when missing)
      - Transition text (`old -> new`, with `UNKNOWN` old-status omission)
      - Date-only value from `changed_at`
-   - Use existing status spelling/mapping conventions so labels stay consistent with the rest of the app.
+   - Extract/add a shared history-status formatter/config for spelling so the page can safely handle `OPENED` and `REMOVED` (not just active statuses).
+   - Keep badge/color conventions aligned with existing mappings where type-safe and relevant.
    - Reuse existing card styling patterns (`GlassCard`) for visual consistency.
 
 4. **Click behavior by transition type**
@@ -76,6 +80,7 @@ Status values expected in this feed:
 
 6. **SEO and indexing**
    - Add `/status-updates` static entry to `app/sitemap.ts`.
+   - Add `/list` static entry to `app/sitemap.ts` (currently missing, while `/map` is already present).
    - Update `docs/seo.md` to mention the new indexed public route and metadata/canonical coverage.
 
 7. **Validation**
