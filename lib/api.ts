@@ -87,14 +87,17 @@ async function fetchData<T>(input: string): Promise<T> {
   const res = await fetchJson(input);
 
   if (!res.ok) {
-    throw new ApiError(`Fetch failed: ${res.status} ${res.statusText}`, res.status);
+    throw new ApiError(
+      `Fetch failed: ${res.status} ${res.statusText}`,
+      res.status,
+    );
   }
 
   return res.json() as Promise<T>;
 }
 
 export async function getSuperchargersSoon(
-  limit = 20
+  limit = 20,
 ): Promise<SuperchargersSoonResponse> {
   const baseUrl = process.env.BACKEND_URL;
   if (!baseUrl) throw new Error("BACKEND_URL is not set");
