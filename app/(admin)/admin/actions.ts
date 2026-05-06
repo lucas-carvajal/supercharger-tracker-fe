@@ -3,6 +3,10 @@
 import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
 import { clearAdminSession, createAdminSession, requireAdminSession } from "@/lib/admin-auth";
+import {
+  ImportErrorResponseSchema,
+  ImportRunResponseSchema,
+} from "@/lib/contracts/admin-import";
 import type { ImportFormState, LoginFormState } from "@/app/(admin)/admin/form-state";
 
 function logAdminConfigError(message: string) {
@@ -153,14 +157,10 @@ export async function runImport(
     : `Import endpoint returned HTTP ${upstreamResponse.status}.`;
 
   if (!upstreamResponse.ok) {
-    const errorMessage =
-      parsedResponse &&
-      typeof parsedResponse === "object" &&
-      parsedResponse !== null &&
-      "error" in parsedResponse &&
-      typeof parsedResponse.error === "string"
-        ? parsedResponse.error
-        : `Import failed with HTTP ${upstreamResponse.status}.`;
+    const parsedError = ImportErrorResponseSchema.safeParse(parsedResponse);
+    const errorMessage = parsedError.success && parsedError.data.error
+      ? parsedError.data.error
+      : `Import failed with HTTP ${upstreamResponse.status}.`;
 
     return {
       error: errorMessage,
@@ -169,14 +169,10 @@ export async function runImport(
     };
   }
 
-  const status =
-    parsedResponse &&
-    typeof parsedResponse === "object" &&
-    parsedResponse !== null &&
-    "status" in parsedResponse &&
-    typeof parsedResponse.status === "string"
-      ? parsedResponse.status
-      : "completed";
+  const parsedRun = ImportRunResponseSchema.safeParse(parsedResponse);
+  const status = parsedRun.success && parsedRun.data.status
+    ? parsedRun.data.status
+    : "completed";
 
   refresh();
 

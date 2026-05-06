@@ -1,7 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import type { Supercharger, SuperchargerStatus } from "@/lib/api";
+import {
+  SuperchargersSoonResponseSchema,
+  type Supercharger,
+  type SuperchargerStatus,
+} from "@/lib/contracts/supercharger";
 import { SuperchargerCard } from "@/components/SuperchargerCard";
 import { Button } from "@/components/ui/button";
 import { GlassCard } from "@/components/ui/glass-card";
@@ -160,11 +164,12 @@ export function SuperchargerList({
 
       const res = await fetch(`/api/superchargers/soon?${params}`);
       if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
-      const data = await res.json();
+      const json: unknown = await res.json();
+      const data = SuperchargersSoonResponseSchema.parse(json);
 
       if (replace) {
         const seen = new Set<string>();
-        const deduped = (data.items as Supercharger[]).filter((item) =>
+        const deduped = data.items.filter((item) =>
           seen.has(item.id) ? false : seen.add(item.id)
         );
         setItems(deduped);
@@ -172,9 +177,7 @@ export function SuperchargerList({
       } else {
         setItems((prev) => {
           const seen = new Set(prev.map((item) => item.id));
-          const incoming = (data.items as Supercharger[]).filter(
-            (item) => !seen.has(item.id)
-          );
+          const incoming = data.items.filter((item) => !seen.has(item.id));
           return [...prev, ...incoming];
         });
         setOffset((prev) => prev + data.items.length);
