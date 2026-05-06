@@ -1,12 +1,14 @@
+import {
+  AdminSessionSchema,
+  type AdminSession,
+} from "@/lib/contracts/admin-session";
+
 const encoder = new TextEncoder();
 
 export const ADMIN_SESSION_COOKIE_NAME = "admin_session";
 export const ADMIN_SESSION_DURATION_SECONDS = 60 * 60;
 
-export interface AdminSession {
-  sub: "admin";
-  exp: number;
-}
+export type { AdminSession };
 
 function getSessionSecret() {
   const secret = process.env.ADMIN_SESSION_SECRET;
@@ -112,21 +114,23 @@ export async function verifyAdminSessionToken(token?: string | null) {
     return null;
   }
 
+  let rawPayload: unknown;
   try {
-    const parsed = JSON.parse(
+    rawPayload = JSON.parse(
       decodeBase64Url(encodedPayload).toString("utf8"),
-    ) as Partial<AdminSession>;
-
-    if (parsed.sub !== "admin" || typeof parsed.exp !== "number") {
-      return null;
-    }
-
-    if (parsed.exp <= Math.floor(Date.now() / 1000)) {
-      return null;
-    }
-
-    return parsed as AdminSession;
+    );
   } catch {
     return null;
   }
+
+  const parsed = AdminSessionSchema.safeParse(rawPayload);
+  if (!parsed.success) {
+    return null;
+  }
+
+  if (parsed.data.exp <= Math.floor(Date.now() / 1000)) {
+    return null;
+  }
+
+  return parsed.data;
 }

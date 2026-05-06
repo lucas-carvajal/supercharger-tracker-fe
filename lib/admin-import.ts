@@ -1,4 +1,5 @@
 import "server-only";
+import { ImportVersionResponseSchema } from "@/lib/contracts/admin-import";
 
 export type CurrentImportVersionState =
   | {
@@ -66,11 +67,11 @@ export async function getCurrentImportVersion(): Promise<CurrentImportVersionSta
     };
   }
 
-  let parsedResponse: unknown = null;
+  let parsedJson: unknown = null;
   try {
-    parsedResponse = await upstreamResponse.json();
+    parsedJson = await upstreamResponse.json();
   } catch {
-    parsedResponse = null;
+    parsedJson = null;
   }
 
   if (!upstreamResponse.ok) {
@@ -85,14 +86,8 @@ export async function getCurrentImportVersion(): Promise<CurrentImportVersionSta
     };
   }
 
-  if (
-    !parsedResponse ||
-    typeof parsedResponse !== "object" ||
-    !("current_version" in parsedResponse) ||
-    typeof parsedResponse.current_version !== "number" ||
-    !("next_expected_version" in parsedResponse) ||
-    typeof parsedResponse.next_expected_version !== "number"
-  ) {
+  const parsed = ImportVersionResponseSchema.safeParse(parsedJson);
+  if (!parsed.success) {
     console.error(
       "[admin] Import version endpoint returned an invalid response.",
     );
@@ -105,8 +100,8 @@ export async function getCurrentImportVersion(): Promise<CurrentImportVersionSta
   }
 
   return {
-    currentVersion: parsedResponse.current_version,
-    nextExpectedVersion: parsedResponse.next_expected_version,
+    currentVersion: parsed.data.current_version,
+    nextExpectedVersion: parsed.data.next_expected_version,
     error: null,
   };
 }

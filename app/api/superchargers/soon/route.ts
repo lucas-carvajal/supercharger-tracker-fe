@@ -1,4 +1,8 @@
 import { NextRequest } from "next/server";
+import {
+  SuperchargersSoonQuerySchema,
+  SuperchargersSoonResponseSchema,
+} from "@/lib/contracts/supercharger";
 
 export async function GET(request: NextRequest) {
   const baseUrl = process.env.BACKEND_URL;
@@ -7,13 +11,18 @@ export async function GET(request: NextRequest) {
   }
 
   const { searchParams } = request.nextUrl;
+  const query = SuperchargersSoonQuerySchema.parse({
+    limit: searchParams.get("limit"),
+    offset: searchParams.get("offset"),
+    status: searchParams.get("status"),
+    region: searchParams.get("region"),
+  });
+
   const upstream = new URLSearchParams();
-  upstream.set("limit", searchParams.get("limit") ?? "20");
-  upstream.set("offset", searchParams.get("offset") ?? "0");
-  const status = searchParams.get("status");
-  if (status) upstream.set("status", status);
-  const region = searchParams.get("region");
-  if (region) upstream.set("region", region);
+  upstream.set("limit", query.limit ?? "20");
+  upstream.set("offset", query.offset ?? "0");
+  if (query.status) upstream.set("status", query.status);
+  if (query.region) upstream.set("region", query.region);
 
   const res = await fetch(
     `${baseUrl}/superchargers/soon?${upstream}`,
@@ -27,6 +36,7 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const data = await res.json();
+  const json: unknown = await res.json();
+  const data = SuperchargersSoonResponseSchema.parse(json);
   return Response.json(data);
 }

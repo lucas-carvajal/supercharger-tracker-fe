@@ -1,68 +1,25 @@
-export type SuperchargerStatus =
-  | "IN_DEVELOPMENT"
-  | "UNDER_CONSTRUCTION"
-  | "UNKNOWN"
-  | "OPENED"
-  | "REMOVED";
+import type { z } from "zod";
+import {
+  SuperchargerDetailSchema,
+  SuperchargerMapItemsSchema,
+  SuperchargersSoonResponseSchema,
+} from "@/lib/contracts/supercharger";
+import { StatsResponseSchema } from "@/lib/contracts/stats";
+import { RecentStatusChangesResponseSchema } from "@/lib/contracts/recent-changes";
 
-export interface Supercharger {
-  id: string;
-  title: string;
-  city: string | null;
-  region: string | null;
-  latitude: number;
-  longitude: number;
-  status: SuperchargerStatus;
-  raw_status_value: string;
-  tesla_url: string;
-  first_seen_at: string;
-  last_scraped_at: string;
-  details_fetch_failed: boolean;
-}
-
-export interface SuperchargerMapItem {
-  id: string;
-  title: string;
-  latitude: number;
-  longitude: number;
-  status: SuperchargerStatus;
-}
-
-export interface SuperchargerStatusHistoryEntry {
-  old_status: SuperchargerStatus | null;
-  new_status: SuperchargerStatus;
-  changed_at: string;
-}
-
-export interface SuperchargerDetail extends Supercharger {
-  status_history: SuperchargerStatusHistoryEntry[];
-}
-
-export interface SuperchargersSoonResponse {
-  total: number;
-  items: Supercharger[];
-}
-
-export interface StatsResponse {
-  total_active: number;
-  by_status: Partial<Record<SuperchargerStatus, number>>;
-  as_of: string | null;
-}
-
-export interface RecentStatusChange {
-  id: string;
-  title: string;
-  city: string | null;
-  region: string | null;
-  old_status: SuperchargerStatus;
-  new_status: SuperchargerStatus;
-  changed_at: string;
-}
-
-export interface RecentStatusChangesResponse {
-  total: number;
-  items: RecentStatusChange[];
-}
+export type {
+  Supercharger,
+  SuperchargerDetail,
+  SuperchargerMapItem,
+  SuperchargerStatus,
+  SuperchargerStatusHistoryEntry,
+  SuperchargersSoonResponse,
+} from "@/lib/contracts/supercharger";
+export type { StatsResponse } from "@/lib/contracts/stats";
+export type {
+  RecentStatusChange,
+  RecentStatusChangesResponse,
+} from "@/lib/contracts/recent-changes";
 
 export class ApiError extends Error {
   constructor(
@@ -74,14 +31,11 @@ export class ApiError extends Error {
   }
 }
 
-async function fetchJson(input: string): Promise<Response> {
-  return fetch(input, {
-    next: { revalidate: 60 },
-  });
-}
-
-async function fetchData<T>(input: string): Promise<T> {
-  const res = await fetchJson(input);
+async function fetchAndParse<TSchema extends z.ZodType>(
+  input: string,
+  schema: TSchema,
+): Promise<z.infer<TSchema>> {
+  const res = await fetch(input, { next: { revalidate: 60 } });
 
   if (!res.ok) {
     throw new ApiError(
@@ -90,53 +44,56 @@ async function fetchData<T>(input: string): Promise<T> {
     );
   }
 
-  return res.json() as Promise<T>;
+  const json: unknown = await res.json();
+  return schema.parse(json);
 }
 
-export async function getSuperchargersSoon(
-  limit = 20,
-): Promise<SuperchargersSoonResponse> {
+function requireBackendUrl(): string {
   const baseUrl = process.env.BACKEND_URL;
   if (!baseUrl) throw new Error("BACKEND_URL is not set");
+  return baseUrl;
+}
 
-  return fetchData<SuperchargersSoonResponse>(
+export async function getSuperchargersSoon(limit = 20) {
+  const baseUrl = requireBackendUrl();
+  return fetchAndParse(
     `${baseUrl}/superchargers/soon?limit=${limit}`,
+    SuperchargersSoonResponseSchema,
   );
 }
 
-export async function getStats(): Promise<StatsResponse> {
-  const baseUrl = process.env.BACKEND_URL;
-  if (!baseUrl) throw new Error("BACKEND_URL is not set");
-
-  return fetchData<StatsResponse>(`${baseUrl}/superchargers/soon/stats`);
+export async function getStats() {
+  const baseUrl = requireBackendUrl();
+  return fetchAndParse(
+    `${baseUrl}/superchargers/soon/stats`,
+    StatsResponseSchema,
+  );
 }
 
-export async function getMapItems(): Promise<SuperchargerMapItem[]> {
-  const baseUrl = process.env.BACKEND_URL;
-  if (!baseUrl) throw new Error("BACKEND_URL is not set");
-
-  return fetchData<SuperchargerMapItem[]>(`${baseUrl}/superchargers/soon/map`);
+export async function getMapItems() {
+  const baseUrl = requireBackendUrl();
+  return fetchAndParse(
+    `${baseUrl}/superchargers/soon/map`,
+    SuperchargerMapItemsSchema,
+  );
 }
 
-export async function getSupercharger(id: string): Promise<SuperchargerDetail> {
-  const baseUrl = process.env.BACKEND_URL;
-  if (!baseUrl) throw new Error("BACKEND_URL is not set");
-
-  return fetchData<SuperchargerDetail>(`${baseUrl}/superchargers/soon/${id}`);
+export async function getSupercharger(id: string) {
+  const baseUrl = requireBackendUrl();
+  return fetchAndParse(
+    `${baseUrl}/superchargers/soon/${id}`,
+    SuperchargerDetailSchema,
+  );
 }
 
-export async function getRecentStatusChanges(
-  limit = 20,
-  offset = 0,
-): Promise<RecentStatusChangesResponse> {
-  const baseUrl = process.env.BACKEND_URL;
-  if (!baseUrl) throw new Error("BACKEND_URL is not set");
-
+export async function getRecentStatusChanges(limit = 20, offset = 0) {
+  const baseUrl = requireBackendUrl();
   const params = new URLSearchParams({
     limit: String(limit),
     offset: String(offset),
   });
-  return fetchData<RecentStatusChangesResponse>(
+  return fetchAndParse(
     `${baseUrl}/superchargers/soon/recent-changes?${params}`,
+    RecentStatusChangesResponseSchema,
   );
 }
