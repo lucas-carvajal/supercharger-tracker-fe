@@ -228,8 +228,9 @@ export function SuperchargerList({
             disabled={isLoading}
           >
             <option value="">All Statuses</option>
-            <option value="IN_DEVELOPMENT">In Development</option>
-            <option value="UNDER_CONSTRUCTION">Under Construction</option>
+            <option value="PRELIMINARY">Preliminary Planning</option>
+            <option value="DESIGN">In Design</option>
+            <option value="CONSTRUCTION">Under Construction</option>
           </FilterSelect>
           <div className="h-5 w-px shrink-0 bg-border/60" />
           <FilterSelect

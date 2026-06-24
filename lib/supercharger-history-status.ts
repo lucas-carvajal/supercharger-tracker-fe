@@ -1,13 +1,15 @@
 import type { SuperchargerStatus } from "@/lib/api";
 
-/** Matches legacy charger-detail copy (sentence-style labels). */
+/** Sentence-style labels used in history/transition copy. */
 export function sentenceCaseHistoryStatusLabel(
   status: SuperchargerStatus,
 ): string {
   switch (status) {
-    case "IN_DEVELOPMENT":
-      return "In development";
-    case "UNDER_CONSTRUCTION":
+    case "PRELIMINARY":
+      return "Preliminary planning";
+    case "DESIGN":
+      return "In design";
+    case "CONSTRUCTION":
       return "Under construction";
     case "OPENED":
       return "Opened";
