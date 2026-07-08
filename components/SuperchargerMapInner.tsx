@@ -171,19 +171,17 @@ export default function SuperchargerMapInner({
   const router = useRouter();
   const searchParams = useSearchParams();
   const [selected, setSelected] = useState<SelectedPoint | null>(null);
-  const [activeFilter, setActiveFilter] = useState<SuperchargerStatus | null>(
-    null,
+  const [activeFilters, setActiveFilters] = useState<Set<SuperchargerStatus>>(
+    () => new Set(),
   );
   const selectedChargerId = searchParams.get("charger");
-  const effectiveFilter = selectedChargerId ? null : activeFilter;
+  // Deep-link focus shows all statuses so the target charger is never hidden.
+  const effectiveFilters = selectedChargerId ? null : activeFilters;
 
-  const filteredItems = useMemo(
-    () =>
-      effectiveFilter
-        ? items.filter((i) => i.status === effectiveFilter)
-        : items,
-    [items, effectiveFilter],
-  );
+  const filteredItems = useMemo(() => {
+    if (!effectiveFilters || effectiveFilters.size === 0) return items;
+    return items.filter((i) => effectiveFilters.has(i.status));
+  }, [items, effectiveFilters]);
   const geojson = useMemo(() => toGeoJSON(filteredItems), [filteredItems]);
   const selectedCharger = useMemo(
     () => items.find((item) => item.id === selectedChargerId) ?? null,
@@ -207,7 +205,12 @@ export default function SuperchargerMapInner({
   );
 
   function toggleFilter(status: SuperchargerStatus) {
-    setActiveFilter((prev) => (prev === status ? null : status));
+    setActiveFilters((prev) => {
+      const next = new Set(prev);
+      if (next.has(status)) next.delete(status);
+      else next.add(status);
+      return next;
+    });
     setSelected(null);
   }
 
@@ -223,26 +226,33 @@ export default function SuperchargerMapInner({
     setSelected(null);
   }
 
+  const hasActiveFilters = activeFilters.size > 0;
+
   return (
     <Map center={[0, 20]} zoom={2} className="h-full w-full">
       <PointSource geojson={geojson} onPointClick={handlePointClick} />
       <MapFocus item={selectedCharger} />
       <MapControls position="bottom-right" showZoom showCompass />
       <div className="absolute bottom-6 left-6 z-10 flex flex-col gap-1.5 rounded-xl border border-white/15 bg-background/90 px-4 py-3 text-xs backdrop-blur-xl">
-        {LEGEND_ITEMS.map(({ status, dot, label }) => (
-          <button
-            key={status}
-            type="button"
-            onClick={() => toggleFilter(status)}
-            className={cn(
-              "flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 transition-colors hover:bg-white/10",
-              activeFilter && activeFilter !== status && "opacity-40",
-            )}
-          >
-            <span className={cn("size-3 rounded-full", dot)} />
-            <span className="text-muted-foreground">{label}</span>
-          </button>
-        ))}
+        {LEGEND_ITEMS.map(({ status, dot, label }) => {
+          const isActive = activeFilters.has(status);
+          return (
+            <button
+              key={status}
+              type="button"
+              onClick={() => toggleFilter(status)}
+              aria-pressed={isActive}
+              className={cn(
+                "flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 transition-colors hover:bg-white/10",
+                hasActiveFilters && !isActive && "opacity-40",
+                isActive && "bg-white/10",
+              )}
+            >
+              <span className={cn("size-3 rounded-full", dot)} />
+              <span className="text-muted-foreground">{label}</span>
+            </button>
+          );
+        })}
       </div>
       {activeSelected && (
         <MapPopup
