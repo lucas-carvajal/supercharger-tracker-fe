@@ -1,12 +1,13 @@
 import { z } from "zod";
 
-export const SuperchargerStatusSchema = z.enum([
-  "IN_DEVELOPMENT",
-  "UNDER_CONSTRUCTION",
-  "UNKNOWN",
-  "OPENED",
-  "REMOVED",
-]);
+export const SuperchargerStatusSchema = z
+  .enum(["PRELIMINARY", "DESIGN", "CONSTRUCTION", "UNKNOWN", "OPENED", "REMOVED"])
+  .catch((ctx) => {
+    if (typeof window === "undefined") {
+      console.warn("[status] unrecognised status value:", ctx.input);
+    }
+    return "UNKNOWN" as const;
+  });
 
 export type SuperchargerStatus = z.infer<typeof SuperchargerStatusSchema>;
 
@@ -19,6 +20,9 @@ export const SuperchargerSchema = z.object({
   longitude: z.number(),
   status: SuperchargerStatusSchema,
   raw_status_value: z.string(),
+  raw_project_status: z.string().nullable().optional(),
+  num_charger_stalls: z.number().optional(),
+  charging_accessibility: z.string().nullable().optional(),
   tesla_url: z.string(),
   first_seen_at: z.string(),
   last_scraped_at: z.string(),

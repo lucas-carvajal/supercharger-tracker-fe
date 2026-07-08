@@ -52,12 +52,17 @@ export async function generateMetadata({
 
 const PHASE_STEPS = [
   {
-    id: "IN_DEVELOPMENT",
-    label: "In development",
+    id: "PRELIMINARY",
+    label: "Preliminary planning",
+    emoji: "📍",
+  },
+  {
+    id: "DESIGN",
+    label: "In design",
     emoji: "📋",
   },
   {
-    id: "UNDER_CONSTRUCTION",
+    id: "CONSTRUCTION",
     label: "Under construction",
     emoji: "🚧",
   },
@@ -171,8 +176,18 @@ export default async function ChargerPage({ params }: ChargerPageProps) {
                   {charger.title}
                 </h1>
 
-                <div className="mt-5">
+                <div className="mt-5 flex flex-wrap items-center gap-2">
                   <StatusBadge status={charger.status} size="md" />
+                  {charger.charging_accessibility && (
+                    <span className="inline-flex items-center rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-xs font-medium text-muted-foreground">
+                      {charger.charging_accessibility}
+                    </span>
+                  )}
+                  {charger.num_charger_stalls != null && charger.num_charger_stalls > 0 && (
+                    <span className="inline-flex items-center rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-xs font-medium text-muted-foreground">
+                      {charger.num_charger_stalls} stalls
+                    </span>
+                  )}
                 </div>
 
                 <div className="mt-8 flex flex-wrap gap-4">
@@ -342,7 +357,7 @@ function getPhaseStepState(
 
   if (isCurrentStep) {
     const startedAt =
-      stepId === "IN_DEVELOPMENT" && !reachedAt
+      stepId === "PRELIMINARY" && !reachedAt
         ? charger.first_seen_at
         : currentPhaseStartedAt;
 
@@ -385,10 +400,11 @@ function getPhaseStepState(
 }
 
 function getPhaseEmoji(
-  status: "IN_DEVELOPMENT" | "UNDER_CONSTRUCTION" | "OPENED",
+  status: "PRELIMINARY" | "DESIGN" | "CONSTRUCTION" | "OPENED",
 ) {
-  if (status === "IN_DEVELOPMENT") return "📋";
-  if (status === "UNDER_CONSTRUCTION") return "🚧";
+  if (status === "PRELIMINARY") return "📍";
+  if (status === "DESIGN") return "📋";
+  if (status === "CONSTRUCTION") return "🚧";
   return "⚡";
 }
 

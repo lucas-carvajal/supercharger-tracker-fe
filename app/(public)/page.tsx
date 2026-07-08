@@ -12,8 +12,13 @@ export default async function Home() {
   ]);
 
   const totalComingSoon = stats?.total_active ?? soon?.total ?? null;
-  const underConstruction = stats?.by_status["UNDER_CONSTRUCTION"] ?? null;
-  const inDevelopment = stats?.by_status["IN_DEVELOPMENT"] ?? null;
+  const underConstruction = stats?.by_status["CONSTRUCTION"] ?? null;
+  const preliminary = stats?.by_status["PRELIMINARY"] ?? null;
+  const design = stats?.by_status["DESIGN"] ?? null;
+  const inDevelopment =
+    preliminary !== null || design !== null
+      ? (preliminary ?? 0) + (design ?? 0)
+      : null;
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col items-center justify-center px-6 py-16 text-center sm:px-10 sm:py-24">
@@ -31,7 +36,7 @@ export default async function Home() {
       <div className="mt-10 grid w-full grid-cols-3 gap-4 sm:flex sm:flex-wrap sm:justify-center sm:gap-x-10 sm:gap-y-4">
         <Stat value={totalComingSoon} label="coming soon" />
         <Stat value={underConstruction} label="under construction" />
-        <Stat value={inDevelopment} label="in development" />
+        <Stat value={inDevelopment} label="in development" title="Preliminary Planning + In Design" />
       </div>
 
       <div className="mt-12 flex w-full flex-col items-stretch justify-center gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-center sm:gap-4">
@@ -61,9 +66,9 @@ export default async function Home() {
   );
 }
 
-function Stat({ value, label }: { value: number | null; label: string }) {
+function Stat({ value, label, title }: { value: number | null; label: string; title?: string }) {
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col items-center" title={title}>
       <span className="text-2xl font-bold tabular-nums text-foreground sm:text-4xl">
         {value ?? "—"}
       </span>

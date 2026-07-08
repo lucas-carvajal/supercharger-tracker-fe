@@ -65,10 +65,12 @@ function PointSource({
         "circle-color": [
           "match",
           ["get", "status"],
-          "IN_DEVELOPMENT",
-          STATUS_CONFIG.IN_DEVELOPMENT.hex,
-          "UNDER_CONSTRUCTION",
-          STATUS_CONFIG.UNDER_CONSTRUCTION.hex,
+          "PRELIMINARY",
+          STATUS_CONFIG.PRELIMINARY.hex,
+          "DESIGN",
+          STATUS_CONFIG.DESIGN.hex,
+          "CONSTRUCTION",
+          STATUS_CONFIG.CONSTRUCTION.hex,
           STATUS_CONFIG.UNKNOWN.hex,
         ],
         "circle-radius": 6,
@@ -158,12 +160,9 @@ const LEGEND_ITEMS: {
   dot: string;
   label: string;
 }[] = [
-  {
-    status: "UNDER_CONSTRUCTION",
-    dot: "bg-orange-500",
-    label: "Under Construction",
-  },
-  { status: "IN_DEVELOPMENT", dot: "bg-emerald-400", label: "In Development" },
+  { status: "PRELIMINARY", dot: "bg-sky-400", label: "Preliminary Planning" },
+  { status: "DESIGN", dot: "bg-emerald-400", label: "In Design" },
+  { status: "CONSTRUCTION", dot: "bg-orange-500", label: "Under Construction" },
 ];
 
 export default function SuperchargerMapInner({
