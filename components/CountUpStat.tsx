@@ -5,6 +5,13 @@ import { useEffect, useState } from "react";
 /** Count rate: +1 on the displayed value every 2 milliseconds. */
 const COUNT_PER_MS = 0.5;
 
+/**
+ * Survives client-side navigations (module stays in memory) but resets on
+ * full page load / reload (module is re-evaluated). Used so the count-up
+ * only plays on the first visit of a document lifetime.
+ */
+let hasPlayedCountUp = false;
+
 type CountUpStatProps = {
   value: number | null;
   label: string;
@@ -12,10 +19,18 @@ type CountUpStatProps = {
 };
 
 export function CountUpStat({ value, label, title }: CountUpStatProps) {
-  const [display, setDisplay] = useState(0);
+  const [display, setDisplay] = useState(() =>
+    hasPlayedCountUp && value !== null ? value : 0,
+  );
 
   useEffect(() => {
     if (value === null) return;
+
+    if (hasPlayedCountUp) {
+      // Already played this document lifetime (e.g. navigated back) — show final.
+      const frame = requestAnimationFrame(() => setDisplay(value));
+      return () => cancelAnimationFrame(frame);
+    }
 
     let frame = 0;
     let start: number | null = null;
@@ -26,7 +41,13 @@ export function CountUpStat({ value, label, title }: CountUpStatProps) {
 
     if (prefersReducedMotion) {
       frame = requestAnimationFrame(() => setDisplay(value));
-      return () => cancelAnimationFrame(frame);
+      return () => {
+        cancelAnimationFrame(frame);
+        // Defer so React Strict Mode's sync remount still sees the flag as false.
+        queueMicrotask(() => {
+          hasPlayedCountUp = true;
+        });
+      };
     }
 
     const tick = (now: number) => {
@@ -35,6 +56,8 @@ export function CountUpStat({ value, label, title }: CountUpStatProps) {
       setDisplay(next);
       if (next < value) {
         frame = requestAnimationFrame(tick);
+      } else {
+        hasPlayedCountUp = true;
       }
     };
 
@@ -42,6 +65,11 @@ export function CountUpStat({ value, label, title }: CountUpStatProps) {
 
     return () => {
       cancelAnimationFrame(frame);
+      // Mark played when leaving the page so a client back-nav skips the animation.
+      // Microtask defers past React Strict Mode's immediate unmount/remount cycle.
+      queueMicrotask(() => {
+        hasPlayedCountUp = true;
+      });
     };
   }, [value]);
 
