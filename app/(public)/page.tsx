@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Activity, List, MapPin } from "lucide-react";
 import { connection } from "next/server";
+import { CountUpStat } from "@/components/CountUpStat";
 import { getStats, getSuperchargersSoon } from "@/lib/api";
 
 export default async function Home() {
@@ -34,9 +35,13 @@ export default async function Home() {
       </p>
 
       <div className="mt-10 grid w-full grid-cols-3 gap-4 sm:flex sm:flex-wrap sm:justify-center sm:gap-x-10 sm:gap-y-4">
-        <Stat value={totalComingSoon} label="coming soon" />
-        <Stat value={underConstruction} label="under construction" />
-        <Stat value={inDevelopment} label="in development" title="Preliminary Planning + In Design" />
+        <CountUpStat value={totalComingSoon} label="coming soon" />
+        <CountUpStat value={underConstruction} label="under construction" />
+        <CountUpStat
+          value={inDevelopment}
+          label="in development"
+          title="Preliminary Planning + In Design"
+        />
       </div>
 
       <div className="mt-12 flex w-full flex-col items-stretch justify-center gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-center sm:gap-4">
@@ -66,15 +71,3 @@ export default async function Home() {
   );
 }
 
-function Stat({ value, label, title }: { value: number | null; label: string; title?: string }) {
-  return (
-    <div className="flex flex-col items-center" title={title}>
-      <span className="text-2xl font-bold tabular-nums text-foreground sm:text-4xl">
-        {value ?? "—"}
-      </span>
-      <span className="mt-1 text-xs text-muted-foreground sm:text-sm">
-        {label}
-      </span>
-    </div>
-  );
-}
