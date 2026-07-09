@@ -6,11 +6,20 @@ import type MapLibreGL from "maplibre-gl";
 import type { SuperchargerMapItem, SuperchargerStatus } from "@/lib/api";
 import { STATUS_CONFIG } from "@/lib/status";
 import { cn } from "@/lib/utils";
-import { Map, useMap, MapPopup, MapControls } from "@/components/ui/map";
+import {
+  Map,
+  useMap,
+  MapPopup,
+  MapControls,
+  type MapViewport,
+} from "@/components/ui/map";
 import { StatusBadge } from "@/components/StatusBadge";
 
 const SOURCE_ID = "superchargers";
 const POINT_LAYER = "supercharger-points";
+const MAP_VIEWPORT_KEY = "supercharger-map-viewport";
+const DEFAULT_CENTER: [number, number] = [0, 20];
+const DEFAULT_ZOOM = 2;
 
 interface SelectedPoint {
   properties: SuperchargerMapItem;
@@ -19,6 +28,44 @@ interface SelectedPoint {
 
 interface SuperchargerMapInnerProps {
   items: SuperchargerMapItem[];
+}
+
+function isValidViewport(value: unknown): value is MapViewport {
+  if (!value || typeof value !== "object") return false;
+  const v = value as Partial<MapViewport>;
+  return (
+    Array.isArray(v.center) &&
+    v.center.length === 2 &&
+    typeof v.center[0] === "number" &&
+    typeof v.center[1] === "number" &&
+    Number.isFinite(v.center[0]) &&
+    Number.isFinite(v.center[1]) &&
+    typeof v.zoom === "number" &&
+    Number.isFinite(v.zoom) &&
+    typeof v.bearing === "number" &&
+    Number.isFinite(v.bearing) &&
+    typeof v.pitch === "number" &&
+    Number.isFinite(v.pitch)
+  );
+}
+
+function loadSavedViewport(): MapViewport | null {
+  try {
+    const raw = sessionStorage.getItem(MAP_VIEWPORT_KEY);
+    if (!raw) return null;
+    const parsed: unknown = JSON.parse(raw);
+    return isValidViewport(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveViewport(viewport: MapViewport) {
+  try {
+    sessionStorage.setItem(MAP_VIEWPORT_KEY, JSON.stringify(viewport));
+  } catch {
+    /* private mode / quota — ignore */
+  }
 }
 
 function toGeoJSON(
@@ -155,6 +202,32 @@ function MapFocus({
   return null;
 }
 
+/** Persist pan/zoom so returning from a detail page restores the same view. */
+function PersistViewport() {
+  const { map, isLoaded } = useMap();
+
+  useEffect(() => {
+    if (!isLoaded || !map) return;
+
+    const handleMoveEnd = () => {
+      const center = map.getCenter();
+      saveViewport({
+        center: [center.lng, center.lat],
+        zoom: map.getZoom(),
+        bearing: map.getBearing(),
+        pitch: map.getPitch(),
+      });
+    };
+
+    map.on("moveend", handleMoveEnd);
+    return () => {
+      map.off("moveend", handleMoveEnd);
+    };
+  }, [isLoaded, map]);
+
+  return null;
+}
+
 const LEGEND_ITEMS: {
   status: SuperchargerStatus;
   dot: string;
@@ -177,6 +250,10 @@ export default function SuperchargerMapInner({
   const selectedChargerId = searchParams.get("charger");
   // Deep-link focus shows all statuses so the target charger is never hidden.
   const effectiveFilters = selectedChargerId ? null : activeFilters;
+
+  // Restore last pan/zoom for this browser session (e.g. after viewing a detail page).
+  // Component is client-only (dynamic ssr:false), so sessionStorage is available here.
+  const initialViewport = useMemo(() => loadSavedViewport(), []);
 
   const filteredItems = useMemo(() => {
     if (!effectiveFilters || effectiveFilters.size === 0) return items;
@@ -227,11 +304,24 @@ export default function SuperchargerMapInner({
   }
 
   const hasActiveFilters = activeFilters.size > 0;
+  // MapLibre GeoJSON properties can coerce numbers to strings on click.
+  const selectedStallCount = activeSelected
+    ? Number(activeSelected.properties.num_charger_stalls)
+    : NaN;
+  const showStallCount =
+    Number.isFinite(selectedStallCount) && selectedStallCount > 0;
 
   return (
-    <Map center={[0, 20]} zoom={2} className="h-full w-full">
+    <Map
+      center={initialViewport?.center ?? DEFAULT_CENTER}
+      zoom={initialViewport?.zoom ?? DEFAULT_ZOOM}
+      bearing={initialViewport?.bearing ?? 0}
+      pitch={initialViewport?.pitch ?? 0}
+      className="h-full w-full"
+    >
       <PointSource geojson={geojson} onPointClick={handlePointClick} />
       <MapFocus item={selectedCharger} />
+      <PersistViewport />
       <MapControls position="bottom-right" showZoom showCompass />
       <div className="absolute bottom-6 left-6 z-10 flex flex-col gap-1.5 rounded-xl border border-white/15 bg-background/90 px-4 py-3 text-xs backdrop-blur-xl">
         {LEGEND_ITEMS.map(({ status, dot, label }) => {
@@ -266,15 +356,27 @@ export default function SuperchargerMapInner({
             onClick={() =>
               router.push(`/charger/${activeSelected.properties.id}`)
             }
-            className="flex w-full cursor-pointer flex-col gap-2 px-4 py-3 text-left outline-none transition-colors hover:bg-white/5 focus-visible:bg-white/5 focus-visible:ring-2 focus-visible:ring-primary/40"
+            className="flex w-full min-w-[12rem] cursor-pointer flex-col gap-2 px-4 py-3 text-left outline-none transition-colors hover:bg-white/5 focus-visible:bg-white/5 focus-visible:ring-2 focus-visible:ring-primary/40"
           >
-            <h3 className="text-sm font-semibold text-foreground">
+            <h3 className="text-sm font-semibold leading-snug text-foreground">
               {activeSelected.properties.title}
             </h3>
             <StatusBadge status={activeSelected.properties.status} />
-            <span className="mt-1 text-xs text-muted-foreground">
-              Click for details
-            </span>
+            <div className="mt-1 flex items-center gap-1.5 border-t border-white/10 pt-2 text-xs">
+              {showStallCount && (
+                <>
+                  <span className="inline-flex items-center gap-1 text-sm font-bold text-foreground">
+                    <span aria-hidden>⚡</span>
+                    {selectedStallCount}{" "}
+                    {selectedStallCount === 1 ? "stall" : "stalls"}
+                  </span>
+                  <span className="text-muted-foreground" aria-hidden>
+                    ·
+                  </span>
+                </>
+              )}
+              <span className="text-muted-foreground">Click for details</span>
+            </div>
           </button>
         </MapPopup>
       )}

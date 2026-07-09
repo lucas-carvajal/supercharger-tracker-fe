@@ -37,6 +37,8 @@ export const SuperchargerMapItemSchema = z.object({
   latitude: z.number(),
   longitude: z.number(),
   status: SuperchargerStatusSchema,
+  /** Present when known; 0 or omitted means hide in UI */
+  num_charger_stalls: z.number().optional(),
 });
 
 export type SuperchargerMapItem = z.infer<typeof SuperchargerMapItemSchema>;
