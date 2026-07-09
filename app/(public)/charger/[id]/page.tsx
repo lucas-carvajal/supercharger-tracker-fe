@@ -178,16 +178,6 @@ export default async function ChargerPage({ params }: ChargerPageProps) {
 
                 <div className="mt-5 flex flex-wrap items-center gap-2">
                   <StatusBadge status={charger.status} size="md" />
-                  {charger.charging_accessibility && (
-                    <span className="inline-flex items-center rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-xs font-medium text-muted-foreground">
-                      {charger.charging_accessibility}
-                    </span>
-                  )}
-                  {charger.num_charger_stalls != null && charger.num_charger_stalls > 0 && (
-                    <span className="inline-flex items-center rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-xs font-medium text-muted-foreground">
-                      {charger.num_charger_stalls} stalls
-                    </span>
-                  )}
                 </div>
 
                 <div className="mt-8 flex flex-wrap gap-4">
@@ -206,6 +196,15 @@ export default async function ChargerPage({ params }: ChargerPageProps) {
                       />
                     </>
                   )}
+                  {charger.num_charger_stalls != null &&
+                    charger.num_charger_stalls > 0 && (
+                      <SummaryItem
+                        label="Stalls"
+                        value={String(charger.num_charger_stalls)}
+                        tone="mint"
+                        className="min-w-[15rem] flex-1"
+                      />
+                    )}
                   <a
                     href={charger.tesla_url}
                     target="_blank"
@@ -310,26 +309,55 @@ export default async function ChargerPage({ params }: ChargerPageProps) {
   );
 }
 
+const SUMMARY_ITEM_TONES = {
+  default: {
+    box: "border-white/10 bg-black/15",
+    label: "text-muted-foreground",
+    value: "text-foreground",
+  },
+  // Brand mint (#00FF9F) — same accent as the hero glow and DESIGN status
+  mint: {
+    box: "border-[#00FF9F]/25 bg-[#00FF9F]/10",
+    label: "text-[#00FF9F]/70",
+    value: "text-[#00FF9F]",
+  },
+} as const;
+
 function SummaryItem({
   label,
   value,
   className,
+  tone = "default",
 }: {
   label: string;
   value: string;
   className?: string;
+  tone?: keyof typeof SUMMARY_ITEM_TONES;
 }) {
+  const colors = SUMMARY_ITEM_TONES[tone];
+
   return (
     <div
       className={cn(
-        "flex min-h-28 flex-col justify-between rounded-2xl border border-white/10 bg-black/15 px-5 py-4 backdrop-blur-sm",
+        "flex min-h-28 flex-col justify-between rounded-2xl border px-5 py-4 backdrop-blur-sm",
+        colors.box,
         className,
       )}
     >
-      <p className="text-xs font-medium uppercase leading-snug tracking-[0.16em] text-muted-foreground">
+      <p
+        className={cn(
+          "text-xs font-medium uppercase leading-snug tracking-[0.16em]",
+          colors.label,
+        )}
+      >
         {label}
       </p>
-      <p className="mt-4 text-[clamp(1.75rem,4vw,2.4rem)] font-semibold leading-[1.05] text-foreground">
+      <p
+        className={cn(
+          "mt-4 text-[clamp(1.75rem,4vw,2.4rem)] font-semibold leading-[1.05]",
+          colors.value,
+        )}
+      >
         {value}
       </p>
     </div>
