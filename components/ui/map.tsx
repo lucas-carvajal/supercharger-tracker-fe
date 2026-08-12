@@ -964,7 +964,11 @@ function MapPopup({
   useEffect(() => {
     if (!map) return;
 
-    const onCloseProp = () => onCloseRef.current?.();
+    let ignoreClose = false;
+    const onCloseProp = () => {
+      if (ignoreClose) return;
+      onCloseRef.current?.();
+    };
 
     popup.on("close", onCloseProp);
 
@@ -972,6 +976,7 @@ function MapPopup({
     popup.addTo(map);
 
     return () => {
+      ignoreClose = true;
       popup.off("close", onCloseProp);
       if (popup.isOpen()) {
         popup.remove();
