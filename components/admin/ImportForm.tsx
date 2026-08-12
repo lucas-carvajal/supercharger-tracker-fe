@@ -27,7 +27,7 @@ export function ImportForm() {
           name="payloadFile"
           type="file"
           accept="application/json,.json"
-          className="block w-full rounded-2xl border border-white/12 bg-white/6 px-4 py-3 text-sm text-muted-foreground file:mr-4 file:rounded-full file:border-0 file:bg-primary file:px-4 file:py-2 file:text-sm file:font-semibold file:text-primary-foreground hover:file:bg-primary/90"
+          className="block w-full cursor-pointer rounded-2xl border border-white/12 bg-white/6 px-4 py-3 text-sm text-muted-foreground file:mr-4 file:cursor-pointer file:rounded-full file:border-0 file:bg-primary file:px-4 file:py-2 file:text-sm file:font-semibold file:text-primary-foreground hover:file:bg-primary/90"
         />
       </div>
 
