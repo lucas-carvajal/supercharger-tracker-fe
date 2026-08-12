@@ -292,11 +292,15 @@ export default function SuperchargerMapInner({
   }
 
   function handlePopupClose() {
-    if (selectedChargerId) {
-      const params = new URLSearchParams(searchParams.toString());
-      params.delete("charger");
-      const nextUrl = params.toString() ? `/map?${params}` : "/map";
-      router.replace(nextUrl);
+    // MapLibre fires `close` when the map is torn down. That happens on
+    // back-navigation after the URL is already the charger page; replacing
+    // then would overwrite the destination with /map.
+    const url = new URL(window.location.href);
+    if (url.pathname !== "/map") return;
+
+    if (url.searchParams.has("charger")) {
+      url.searchParams.delete("charger");
+      router.replace(`${url.pathname}${url.search}`);
       return;
     }
 
