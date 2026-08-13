@@ -6,6 +6,7 @@ import {
 } from "@/lib/contracts/supercharger";
 import { StatsResponseSchema } from "@/lib/contracts/stats";
 import { RecentStatusChangesResponseSchema } from "@/lib/contracts/recent-changes";
+import { RecentUpdatesResponseSchema } from "@/lib/contracts/recent-updates";
 
 export type {
   Supercharger,
@@ -20,6 +21,10 @@ export type {
   RecentStatusChange,
   RecentStatusChangesResponse,
 } from "@/lib/contracts/recent-changes";
+export type {
+  RecentUpdateItem,
+  RecentUpdatesResponse,
+} from "@/lib/contracts/recent-updates";
 
 export class ApiError extends Error {
   constructor(
@@ -95,5 +100,17 @@ export async function getRecentStatusChanges(limit = 20, offset = 0) {
   return fetchAndParse(
     `${baseUrl}/superchargers/soon/recent-changes?${params}`,
     RecentStatusChangesResponseSchema,
+  );
+}
+
+export async function getRecentUpdates(limit = 20, offset = 0) {
+  const baseUrl = requireBackendUrl();
+  const params = new URLSearchParams({
+    limit: String(limit),
+    offset: String(offset),
+  });
+  return fetchAndParse(
+    `${baseUrl}/superchargers/soon/recent-updates?${params}`,
+    RecentUpdatesResponseSchema,
   );
 }

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { connection } from "next/server";
-import { getRecentStatusChanges } from "@/lib/api";
+import { getRecentUpdates } from "@/lib/api";
 import { StatusUpdatesRows } from "@/components/StatusUpdatesRows";
 import { OverlayNotice } from "@/components/ui/overlay-notice";
 import { GlassCard } from "@/components/ui/glass-card";
@@ -8,11 +8,11 @@ import { GlassCard } from "@/components/ui/glass-card";
 export const metadata: Metadata = {
   title: "Charger Status Updates",
   description:
-    "Recent Tesla Supercharger coming-soon status changes: construction progress, openings, and removals.",
+    "Recent Tesla Supercharger activity: newly added sites, construction progress, and openings.",
   openGraph: {
     title: "Charger Status Updates",
     description:
-      "See the latest status transitions for tracked Supercharger sites worldwide.",
+      "See newly added Supercharger sites and the latest status transitions worldwide.",
     url: "/status-updates",
   },
   alternates: {
@@ -26,13 +26,13 @@ export default async function StatusUpdatesPage() {
   let loadError = false;
   let empty = false;
 
-  let response: Awaited<ReturnType<typeof getRecentStatusChanges>> = {
+  let response: Awaited<ReturnType<typeof getRecentUpdates>> = {
     items: [],
     total: 0,
   };
 
   try {
-    response = await getRecentStatusChanges(20, 0);
+    response = await getRecentUpdates(20, 0);
     empty = response.items.length === 0;
   } catch {
     loadError = true;
@@ -48,7 +48,7 @@ export default async function StatusUpdatesPage() {
           Charger Status Updates
         </h1>
         <p className="mt-3 max-w-prose text-sm text-muted-foreground sm:text-base">
-          See all recent status changes from tracked Supercharger locations.
+          Newly added Supercharger sites and recent status changes, newest first.
         </p>
       </header>
 
@@ -61,12 +61,15 @@ export default async function StatusUpdatesPage() {
         ) : empty ? (
           <GlassCard className="p-8 text-center">
             <p className="text-sm text-muted-foreground">
-              No recent status changes yet. Check back soon, or browse upcoming
-              sites on the list or map.
+              No recent updates yet. Check back soon, or browse upcoming sites
+              on the list or map.
             </p>
           </GlassCard>
         ) : (
-          <StatusUpdatesRows changes={response.items} />
+          <StatusUpdatesRows
+            initialUpdates={response.items}
+            initialTotal={response.total}
+          />
         )}
       </main>
     </div>

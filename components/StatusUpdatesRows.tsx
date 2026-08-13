@@ -3,15 +3,18 @@
 import Link from "next/link";
 import { ExternalLink } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import type {
-  RecentStatusChange,
-  SuperchargerStatus,
-} from "@/lib/api";
+import type { RecentUpdateItem, SuperchargerStatus } from "@/lib/api";
+import { RecentUpdatesResponseSchema } from "@/lib/contracts/recent-updates";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import { GlassCard } from "@/components/ui/glass-card";
+import { OverlayNotice } from "@/components/ui/overlay-notice";
 import { StatusBadge } from "@/components/StatusBadge";
 import { formatUtcDateShort } from "@/lib/date-display";
 import { transitionDisplayText } from "@/lib/supercharger-history-status";
+
+const LIMIT = 20;
+const MAX_EXTRA_BATCHES = 2;
 
 const REMOVE_EMOJI = "😢";
 
@@ -45,18 +48,86 @@ function FloatingSadEmoji({
 }
 
 interface StatusUpdatesRowsProps {
-  changes: RecentStatusChange[];
+  initialUpdates: RecentUpdateItem[];
+  initialTotal: number;
 }
 
-export function StatusUpdatesRows({ changes }: StatusUpdatesRowsProps) {
+function updateKey(update: RecentUpdateItem) {
+  return `${update.id}-${update.changed_at}`;
+}
+
+export function StatusUpdatesRows({
+  initialUpdates,
+  initialTotal,
+}: StatusUpdatesRowsProps) {
+  const [updates, setUpdates] = useState(initialUpdates);
+  const [total, setTotal] = useState(initialTotal);
+  const [offset, setOffset] = useState(initialUpdates.length);
+  const [extraBatches, setExtraBatches] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState(false);
+
+  const canLoadMore = extraBatches < MAX_EXTRA_BATCHES && offset < total;
+
+  async function handleLoadMore() {
+    if (loading || !canLoadMore) return;
+    setLoading(true);
+    try {
+      setLoadError(false);
+      const params = new URLSearchParams({
+        limit: String(LIMIT),
+        offset: String(offset),
+      });
+      const res = await fetch(
+        `/api/superchargers/soon/recent-updates?${params}`,
+      );
+      if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
+      const json: unknown = await res.json();
+      const data = RecentUpdatesResponseSchema.parse(json);
+
+      setUpdates((prev) => {
+        const seen = new Set(prev.map(updateKey));
+        const incoming = data.items.filter((item) => !seen.has(updateKey(item)));
+        return [...prev, ...incoming];
+      });
+      setOffset((prev) => prev + data.items.length);
+      setTotal(data.total);
+      setExtraBatches((n) => n + 1);
+    } catch {
+      setLoadError(true);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
-    <ul className="grid list-none gap-4 p-0">
-      {changes.map((change) => (
-        <li key={`${change.id}-${change.changed_at}`}>
-          <StatusUpdateRow change={change} />
-        </li>
-      ))}
-    </ul>
+    <div>
+      {loadError && (
+        <OverlayNotice
+          title="Could not load more updates"
+          message="We're having trouble loading more status updates right now. Please try again later."
+        />
+      )}
+      <ul className="grid list-none gap-4 p-0">
+        {updates.map((update) => (
+          <li key={updateKey(update)}>
+            <StatusUpdateRow update={update} />
+          </li>
+        ))}
+      </ul>
+      {canLoadMore && (
+        <div className="mt-10 flex justify-center">
+          <Button
+            variant="outline"
+            className="w-full rounded-full px-8 sm:w-auto"
+            onClick={handleLoadMore}
+            disabled={loading}
+          >
+            {loading ? "Loading…" : "Load more"}
+          </Button>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -65,11 +136,11 @@ function StatusTransitionBadges({
   newStatus,
   transitionLabel,
 }: {
-  oldStatus: SuperchargerStatus;
+  oldStatus: SuperchargerStatus | null;
   newStatus: SuperchargerStatus;
   transitionLabel: string;
 }) {
-  const showFrom = oldStatus !== "UNKNOWN";
+  const showFrom = oldStatus !== null && oldStatus !== "UNKNOWN";
 
   return (
     <div
@@ -94,13 +165,13 @@ function StatusTransitionBadges({
   );
 }
 
-function StatusUpdateRow({ change }: { change: RecentStatusChange }) {
-  const title = change.title.trim() ? change.title.trim() : "Unnamed location";
+function StatusUpdateRow({ update }: { update: RecentUpdateItem }) {
+  const title = update.title.trim() ? update.title.trim() : "Unnamed location";
   const transitionLabel = transitionDisplayText({
-    old_status: change.old_status,
-    new_status: change.new_status,
+    old_status: update.old_status,
+    new_status: update.new_status,
   });
-  const dateDisplay = formatUtcDateShort(change.changed_at);
+  const dateDisplay = formatUtcDateShort(update.changed_at);
 
   const emojiKeyRef = useRef(0);
   const [emojiIds, setEmojiIds] = useState<number[]>([]);
@@ -120,7 +191,7 @@ function StatusUpdateRow({ change }: { change: RecentStatusChange }) {
         <h2 className="text-base font-semibold leading-snug text-foreground">
           {title}
         </h2>
-        {change.new_status === "OPENED" ? (
+        {update.new_status === "OPENED" ? (
           <ExternalLink
             className="size-3.5 shrink-0 text-muted-foreground"
             aria-hidden
@@ -128,12 +199,12 @@ function StatusUpdateRow({ change }: { change: RecentStatusChange }) {
         ) : null}
       </div>
       <StatusTransitionBadges
-        oldStatus={change.old_status}
-        newStatus={change.new_status}
+        oldStatus={update.old_status}
+        newStatus={update.new_status}
         transitionLabel={transitionLabel}
       />
       <time
-        dateTime={change.changed_at.slice(0, 10)}
+        dateTime={update.changed_at.slice(0, 10)}
         className="text-xs tabular-nums text-muted-foreground"
       >
         {dateDisplay}
@@ -141,11 +212,11 @@ function StatusUpdateRow({ change }: { change: RecentStatusChange }) {
     </div>
   );
 
-  if (change.new_status === "OPENED") {
+  if (update.new_status === "OPENED") {
     return (
       <GlassCard className="p-5 shadow-none">
         <a
-          href={`https://www.tesla.com/findus?location=${encodeURIComponent(change.id)}`}
+          href={`https://www.tesla.com/findus?location=${encodeURIComponent(update.id)}`}
           target="_blank"
           rel="noopener noreferrer"
           className="block rounded-2xl outline-none transition-colors active:opacity-95 focus-visible:ring-2 focus-visible:ring-primary/35"
@@ -156,7 +227,7 @@ function StatusUpdateRow({ change }: { change: RecentStatusChange }) {
     );
   }
 
-  if (change.new_status === "REMOVED") {
+  if (update.new_status === "REMOVED") {
     return (
       <GlassCard
         className={cn(
@@ -188,7 +259,7 @@ function StatusUpdateRow({ change }: { change: RecentStatusChange }) {
 
   return (
     <Link
-      href={`/charger/${change.id}`}
+      href={`/charger/${update.id}`}
       className={cn(
         "block rounded-3xl outline-none",
         "focus-visible:ring-2 focus-visible:ring-primary/35",

@@ -22,11 +22,11 @@ export function sentenceCaseHistoryStatusLabel(
 }
 
 export function transitionDisplayText(params: {
-  old_status: SuperchargerStatus;
+  old_status: SuperchargerStatus | null;
   new_status: SuperchargerStatus;
 }): string {
   const newLabel = sentenceCaseHistoryStatusLabel(params.new_status);
-  if (params.old_status === "UNKNOWN") {
+  if (params.old_status === null || params.old_status === "UNKNOWN") {
     return `→ ${newLabel}`;
   }
   const oldLabel = sentenceCaseHistoryStatusLabel(params.old_status);
