@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import type MapLibreGL from "maplibre-gl";
@@ -355,12 +356,9 @@ export default function SuperchargerMapInner({
           onClose={handlePopupClose}
           className="overflow-hidden rounded-xl border border-white/15 bg-background/95 p-0 shadow-2xl backdrop-blur-xl"
         >
-          <button
-            type="button"
-            onClick={() =>
-              router.push(`/charger/${activeSelected.properties.id}`)
-            }
-            className="flex w-full min-w-[12rem] cursor-pointer flex-col gap-2 px-4 py-3 text-left outline-none transition-colors hover:bg-white/5 focus-visible:bg-white/5 focus-visible:ring-2 focus-visible:ring-primary/40"
+          <Link
+            href={`/charger/${activeSelected.properties.id}`}
+            className="flex w-full min-w-[12rem] flex-col gap-2 px-4 py-3 text-left outline-none transition-colors hover:bg-white/5 focus-visible:bg-white/5 focus-visible:ring-2 focus-visible:ring-primary/40"
           >
             <h3 className="text-sm font-semibold leading-snug text-foreground">
               {activeSelected.properties.title}
@@ -381,7 +379,7 @@ export default function SuperchargerMapInner({
               )}
               <span className="text-muted-foreground">Click for details</span>
             </div>
-          </button>
+          </Link>
         </MapPopup>
       )}
     </Map>
