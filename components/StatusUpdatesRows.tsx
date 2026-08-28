@@ -11,7 +11,10 @@ import { GlassCard } from "@/components/ui/glass-card";
 import { OverlayNotice } from "@/components/ui/overlay-notice";
 import { StatusBadge } from "@/components/StatusBadge";
 import { formatUtcDateShort } from "@/lib/date-display";
-import { transitionDisplayText } from "@/lib/supercharger-history-status";
+import {
+  showsFromStatus,
+  transitionDisplayText,
+} from "@/lib/supercharger-history-status";
 
 const LIMIT = 20;
 const MAX_EXTRA_BATCHES = 2;
@@ -140,7 +143,7 @@ function StatusTransitionBadges({
   newStatus: SuperchargerStatus;
   transitionLabel: string;
 }) {
-  const showFrom = oldStatus !== null && oldStatus !== "UNKNOWN";
+  const showFrom = showsFromStatus(oldStatus);
 
   return (
     <div

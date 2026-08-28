@@ -21,12 +21,20 @@ export function sentenceCaseHistoryStatusLabel(
   }
 }
 
+export function showsFromStatus(
+  oldStatus: SuperchargerStatus | null,
+): boolean {
+  return (
+    oldStatus !== null && oldStatus !== "UNKNOWN" && oldStatus !== "REMOVED"
+  );
+}
+
 export function transitionDisplayText(params: {
   old_status: SuperchargerStatus | null;
   new_status: SuperchargerStatus;
 }): string {
   const newLabel = sentenceCaseHistoryStatusLabel(params.new_status);
-  if (params.old_status === null || params.old_status === "UNKNOWN") {
+  if (!showsFromStatus(params.old_status)) {
     return `→ ${newLabel}`;
   }
   const oldLabel = sentenceCaseHistoryStatusLabel(params.old_status);
