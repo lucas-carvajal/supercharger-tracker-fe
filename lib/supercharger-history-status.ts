@@ -23,7 +23,7 @@ export function sentenceCaseHistoryStatusLabel(
 
 export function showsFromStatus(
   oldStatus: SuperchargerStatus | null,
-): boolean {
+): oldStatus is Exclude<SuperchargerStatus, "UNKNOWN" | "REMOVED"> {
   return (
     oldStatus !== null && oldStatus !== "UNKNOWN" && oldStatus !== "REMOVED"
   );

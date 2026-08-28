@@ -143,15 +143,13 @@ function StatusTransitionBadges({
   newStatus: SuperchargerStatus;
   transitionLabel: string;
 }) {
-  const showFrom = showsFromStatus(oldStatus);
-
   return (
     <div
       role="group"
       aria-label={transitionLabel}
       className="flex flex-wrap items-center gap-2 text-left"
     >
-      {showFrom ? (
+      {showsFromStatus(oldStatus) ? (
         <>
           <StatusBadge status={oldStatus} size="sm" />
           <span className="text-muted-foreground" aria-hidden>
