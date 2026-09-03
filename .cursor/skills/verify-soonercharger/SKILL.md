@@ -18,12 +18,13 @@ export VERIFY_RUN_ID=your-run-id
 .cursor/skills/verify-soonercharger/helpers/verify launch
 ```
 
-Ready means `GET {origin}/api/health` returns `{"status":"ok"}`. The helper prints `ready http://127.0.0.1:4310 pid=...`. Default bind is `127.0.0.1:4310`. Override with `VERIFY_PORT` and `VERIFY_HOST`.
+Ready means `GET {origin}/api/health` returns `{"status":"ok"}`. The helper prints `ready http://127.0.0.1:4310 pid=... mode=fixture`. Default bind is `127.0.0.1:4310`. Override with `VERIFY_PORT` and `VERIFY_HOST`.
 
-Two modes:
+`VERIFY_MODE` selects the backend:
 
-- No backend, the default. Leave `VERIFY_BACKEND_URL` unset. Home still renders. List, map, status updates, and charger detail show their load-error copy. `/sitemap.xml` still returns the static routes.
-- Live backend. Set `VERIFY_BACKEND_URL` to a reachable Rust API before launch. Required for cards, map pins, charger titles, and update rows.
+- `fixture`, the default. Launch starts the catalog mock from `fixtures/catalog.json` and sets `BACKEND_URL` to that origin. The four sites are Riverside Plaza, Harbor Market, Oak Ridge, and Mesa Verde.
+- `none`. Do not start the mock. Unset `BACKEND_URL`. Use this for error overlays. Home still renders. List, map, status updates, and charger detail show their load-error copy.
+- `live`. Do not start the mock. Set `VERIFY_BACKEND_URL` to a reachable Rust API before launch.
 
 Launch writes state under `/tmp/soonercharger-verify-$VERIFY_RUN_ID`. Evidence goes to `/tmp/soonercharger-verify-evidence/$VERIFY_RUN_ID`. Cleanup deletes only the state directory.
 
@@ -37,7 +38,7 @@ Run this first whenever anything looks off.
 .cursor/skills/verify-soonercharger/helpers/verify doctor
 ```
 
-Doctor is read-only. It checks that the saved pid is alive, that pid owns `VERIFY_PORT`, that `/api/health` is `{"status":"ok"}`, and that `GET /` contains `Soonercharger`. If any check fails, stop driving. Relaunch or cleanup. Do not fall back to another origin.
+Doctor is read-only. It checks that the saved pid is alive, that pid owns `VERIFY_PORT`, that `/api/health` is `{"status":"ok"}`, and that `GET /` contains `Soonercharger`. Home HTML does not need `Riverside Plaza`. In fixture mode it also checks that the mock answers `/health` or `/superchargers/soon/stats`, and that `GET /list` contains `Riverside Plaza`. If any check fails, stop driving. Relaunch or cleanup. Do not fall back to another origin.
 
 ## Drive
 
@@ -102,7 +103,7 @@ Standards:
 .cursor/skills/verify-soonercharger/helpers/verify cleanup
 ```
 
-Cleanup kills only the pid tree this run started, then deletes `/tmp/soonercharger-verify-$VERIFY_RUN_ID`. It leaves `/tmp/soonercharger-verify-evidence/$VERIFY_RUN_ID` in place. After cleanup, confirm the evidence files still exist.
+Cleanup kills the mock pid tree first, then the next pid tree, then deletes `/tmp/soonercharger-verify-$VERIFY_RUN_ID`. It leaves `/tmp/soonercharger-verify-evidence/$VERIFY_RUN_ID` in place. After cleanup, confirm the evidence files still exist.
 
 Do not kill by process name. Do not kill an unrelated `next dev`.
 
@@ -112,10 +113,12 @@ Do not kill by process name. Do not kill an unrelated `next dev`.
 
 ```bash
 export VERIFY_RUN_ID=your-run-id
-.cursor/skills/verify-soonercharger/helpers/verify launch
+VERIFY_MODE=fixture .cursor/skills/verify-soonercharger/helpers/verify launch
 .cursor/skills/verify-soonercharger/helpers/verify doctor
 .cursor/skills/verify-soonercharger/helpers/verify origin
 .cursor/skills/verify-soonercharger/helpers/verify curl /api/health
+VERIFY_MODE=none .cursor/skills/verify-soonercharger/helpers/verify launch
+VERIFY_MODE=live VERIFY_BACKEND_URL=http://127.0.0.1:8080 .cursor/skills/verify-soonercharger/helpers/verify launch
 .cursor/skills/verify-soonercharger/helpers/verify cleanup
 ```
 

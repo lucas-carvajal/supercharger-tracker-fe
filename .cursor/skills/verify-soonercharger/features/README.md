@@ -10,7 +10,8 @@ This directory is the maintained source for verifying the user-facing behavior o
 - Run `.cursor/skills/verify-soonercharger/helpers/verify doctor` and require the printed origin, pid, and `{"status":"ok"}`.
 - Never drive an instance this run did not start.
 - This checkout allows one `next dev` only. If launch reports another server, stop.
-- No-backend mode is the default. Live-backend recipes say `VERIFY_BACKEND_URL` is required.
+- Fixture catalog is the default seed. The file is `fixtures/catalog.json`. The four sites are Riverside Plaza, Harbor Market, Oak Ridge, and Mesa Verde.
+- `VERIFY_MODE=none` is for error overlays. `VERIFY_MODE=live` needs `VERIFY_BACKEND_URL`.
 - Do not also open `localhost` when the instance is on `127.0.0.1`. The admin cookie is host and path, not port.
 
 ## Driving conventions

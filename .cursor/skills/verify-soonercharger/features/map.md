@@ -22,16 +22,16 @@ The map shows upcoming Supercharger sites on an interactive canvas. A visitor ca
 Preconditions:
 
 - Doctor reports the expected origin and `{"status":"ok"}`.
-- No-backend mode covers `map-open` and `map-error`.
-- Live backend is required for pins, legend filtering, popups, and deep links.
+- Fixture mode covers `map-open`, pins, legend filtering, popups, and deep links.
+- `VERIFY_MODE=none` covers `map-error`.
 
 - **Nav entry.** From home, choose `Map` in the nav named `Primary`. The URL is `/map`.
 - **HTTP open.** Run `.cursor/skills/verify-soonercharger/helpers/verify curl /map`. Status is `200`.
-- **Error status.** In no-backend mode, a status named `Map data unavailable` appears. The message is `We're having trouble loading map data right now. Please try again later.`
-- **Canvas.** With a live backend, wait until `Loading map…` is gone. The legend shows `Preliminary Planning`, `In Design`, and `Under Construction`.
+- **Error status.** With `VERIFY_MODE=none`, a status named `Map data unavailable` appears. The message is `We're having trouble loading map data right now. Please try again later.`
+- **Canvas.** Wait until `Loading map…` is gone. The legend shows `Preliminary Planning`, `In Design`, and `Under Construction`. Pins exist for `Riverside Plaza`, `Harbor Market`, `Oak Ridge`, and `Mesa Verde`.
 - **Legend filter.** Choose `Under Construction`. That button has `aria-pressed="true"`. Pins for other statuses hide. Choose it again to clear the filter.
-- **Popup.** Choose a pin. A popup heading shows the site title, a status badge, and `Click for details`. A control named `Close popup` is present. Choose the popup link. The URL becomes `/charger/{id}`.
-- **Deep link.** Open `/map?charger={id}` for a known live id. The map focuses that site and the popup for that title is visible.
+- **Popup.** Choose the `Riverside Plaza` pin. A popup heading shows `Riverside Plaza`, a status badge, and `Click for details`. A control named `Close popup` is present. Choose the popup link. The URL becomes `/charger/riverside-plaza`.
+- **Deep link.** Open `/map?charger=riverside-plaza`. The map focuses that site and the popup for `Riverside Plaza` is visible.
 - **Proof.** Save a screenshot that shows the map canvas plus either the error status or the legend. Record the entry point used.
 
 ## Gotchas

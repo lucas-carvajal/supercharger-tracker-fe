@@ -23,17 +23,18 @@ Charger detail is one upcoming site. A visitor sees the title, status, timeline,
 Preconditions:
 
 - Doctor reports the expected origin and `{"status":"ok"}`.
-- No-backend mode covers `charger-error` for any id.
-- Live backend is required for a real site, the Tesla link, and the map jump.
+- Fixture mode covers a real site, the Tesla link, and the map jump.
+- `VERIFY_MODE=none` covers `charger-error` for any id.
 
-- **Error page.** In no-backend mode, run `.cursor/skills/verify-soonercharger/helpers/verify curl /charger/any-id`. Status is `200`. The body contains `Charger data unavailable` and `We couldn't load this charger overview right now.`
-- **Browser error.** Open `{origin}/charger/any-id` without a backend. The heading is `Charger data unavailable`.
-- **Open from list.** With a live backend, choose a list card. The URL is `/charger/{id}`. The heading matches the card title. A status badge is visible. `Buildout progress` and `Find it on the map` are visible.
+- **Error page.** With `VERIFY_MODE=none`, run `.cursor/skills/verify-soonercharger/helpers/verify curl /charger/any-id`. Status is `200`. The body contains `Charger data unavailable` and `We couldn't load this charger overview right now.`
+- **Browser error.** Open `{origin}/charger/any-id` with `VERIFY_MODE=none`. The heading is `Charger data unavailable`.
+- **Open from list.** Choose `Riverside Plaza`. The URL is `/charger/riverside-plaza`. The heading is `Riverside Plaza`. A status badge is visible. `Buildout progress` and `Find it on the map` are visible.
+- **HTTP open.** Run `.cursor/skills/verify-soonercharger/helpers/verify curl /charger/riverside-plaza`. Status is `200`. The body contains `Riverside Plaza` and `Buildout progress`.
 - **Breadcrumb.** A nav named `Breadcrumb` contains `Back to all sites`.
 - **Source link.** Choose `View on Tesla.com`. A new tab opens the charger's `tesla_url`.
-- **Map jump.** Choose the map region under `Find it on the map`. The URL becomes `/map?charger={id}`.
+- **Map jump.** Choose the map region under `Find it on the map`. The URL becomes `/map?charger=riverside-plaza`.
 - **Back.** From a list-origin visit, choose `Back to all sites`. The browser returns to `/list` when history can go back. Otherwise the link goes to `/list`.
-- **Not found.** With a live backend, open `/charger/does-not-exist`. The heading is `Charger not found`. Buttons `Go back` and `Browse the map` are visible. Do not treat that as `Charger data unavailable`.
+- **Not found.** Open `/charger/does-not-exist`. The heading is `Charger not found`. Buttons `Go back` and `Browse the map` are visible. Do not treat that as `Charger data unavailable`.
 - **Proof.** Save the HTTP body for the id you opened and a screenshot of the heading. Record the entry point. For the error path, the heading must be `Charger data unavailable`.
 
 ## Gotchas

@@ -22,18 +22,17 @@ Status updates is the activity feed. A visitor sees newly added sites and recent
 Preconditions:
 
 - Doctor reports the expected origin and `{"status":"ok"}`.
-- No-backend mode covers `updates-open` and `updates-error`.
-- Live backend is required for rows, empty state, and load more.
+- Fixture mode covers `updates-open` and the four fixture rows.
+- `VERIFY_MODE=none` covers `updates-error`. Empty copy is not in the fixture catalog.
 
 - **Nav entry.** From home, choose `Updates` in the nav named `Primary`. The URL is `/status-updates` and the heading is `Charger Status Updates`.
-- **HTTP open.** Run `.cursor/skills/verify-soonercharger/helpers/verify curl /status-updates`. Status is `200`. The body contains `Charger Status Updates`.
-- **Error status.** In no-backend mode, a status named `Updates unavailable` appears. The message is `We're having trouble loading status updates right now. Please try again later.`
-- **Empty.** With a live backend that returns no items, the card reads `No recent updates yet. Check back soon, or browse upcoming sites on the list or map.`
-- **Rows.** Each row heading is the site title or `Unnamed location`. A group labeled with the transition text sits under the title. A `time` element shows the change date.
-- **Open site.** Choose a row that is not `Opened` and not `Removed`. The URL becomes `/charger/{id}`.
-- **Opened row.** An `Opened` row is an external Tesla find-us link, not `/charger/{id}`.
-- **Removed row.** A `Removed` row is a button named `Show acknowledgement for removed charger`. It does not navigate.
-- **Load more.** If `Load more` is visible, choose it. The button reads `Loading…` then more rows appear. At most two extra batches exist. A later failure shows `Could not load more updates`.
+- **HTTP open.** Run `.cursor/skills/verify-soonercharger/helpers/verify curl /status-updates`. Status is `200`. The body contains `Charger Status Updates`, `Mesa Verde`, `Oak Ridge`, `Sunset Depot`, and `Cedar Lot`.
+- **Error status.** With `VERIFY_MODE=none`, a status named `Updates unavailable` appears. The message is `We're having trouble loading status updates right now. Please try again later.`
+- **Rows.** Newest first. `Mesa Verde` is Design to Construction. `Oak Ridge` is a new Preliminary site. `Sunset Depot` is Construction to Opened. `Cedar Lot` is Design to Removed. A `time` element shows the change date.
+- **Open site.** Choose `Mesa Verde` or `Oak Ridge`. The URL becomes `/charger/mesa-verde` or `/charger/oak-ridge`.
+- **Opened row.** `Sunset Depot` is an external Tesla find-us link, not `/charger/sunset-depot`.
+- **Removed row.** `Cedar Lot` is a button named `Show acknowledgement for removed charger`. It does not navigate.
+- **Load more.** The button is absent. The fixture catalog has only four updates, so the first page already shows every row.
 - **Proof.** Save the `/status-updates` HTTP body and a screenshot that shows the heading plus the error status, the empty card, or at least one row.
 
 ## Gotchas
