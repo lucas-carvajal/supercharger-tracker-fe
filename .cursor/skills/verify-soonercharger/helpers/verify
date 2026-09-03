@@ -1,0 +1,474 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+REPO_ROOT="$(git -C "$(dirname "$0")" rev-parse --show-toplevel)"
+VERIFY_RUN_ID="${VERIFY_RUN_ID:-default}"
+STATE_DIR="${VERIFY_STATE_DIR:-/tmp/soonercharger-verify-${VERIFY_RUN_ID}}"
+EVIDENCE_DIR="${VERIFY_EVIDENCE_DIR:-/tmp/soonercharger-verify-evidence/${VERIFY_RUN_ID}}"
+DEFAULT_PORT="${VERIFY_PORT:-4310}"
+DEFAULT_HOST="${VERIFY_HOST:-127.0.0.1}"
+DEFAULT_MOCK_PORT="${VERIFY_MOCK_PORT:-4311}"
+DEFAULT_MOCK_HOST="${VERIFY_MOCK_HOST:-127.0.0.1}"
+MOCK_SCRIPT="$(cd "$(dirname "$0")" && pwd)/mock-backend.mjs"
+
+die() {
+  printf '%s\n' "$*" >&2
+  exit 1
+}
+
+usage() {
+  cat <<'EOF'
+Usage: helpers/verify <command>
+
+Commands:
+  launch     Start the isolated next dev for this VERIFY_RUN_ID
+  doctor     Read-only health check of the instance this run started
+  origin     Print the instance origin URL
+  curl PATH  GET PATH on this instance and print status plus body
+  cleanup    Stop the processes this run started. Keep evidence.
+
+Env:
+  VERIFY_RUN_ID        Run id. Default: default
+  VERIFY_MODE          fixture (default), none, or live
+  VERIFY_PORT          Next listen port. Default: 4310
+  VERIFY_HOST          Next bind host. Default: 127.0.0.1
+  VERIFY_MOCK_PORT     Fixture mock port. Default: 4311
+  VERIFY_MOCK_HOST     Fixture mock host. Default: 127.0.0.1
+  VERIFY_BACKEND_URL   Required when VERIFY_MODE=live
+  VERIFY_STATE_DIR     Override state directory
+  VERIFY_EVIDENCE_DIR  Override evidence directory
+EOF
+}
+
+state_file() {
+  printf '%s/%s' "$STATE_DIR" "$1"
+}
+
+read_state() {
+  local key="$1"
+  local path
+  path="$(state_file "$key")"
+  [[ -f "$path" ]] || die "missing state $path. Run helpers/verify launch first."
+  cat "$path"
+}
+
+requested_mode() {
+  local mode="${VERIFY_MODE:-fixture}"
+  case "$mode" in
+    fixture | none | live) printf '%s\n' "$mode" ;;
+    *) die "VERIFY_MODE must be fixture, none, or live" ;;
+  esac
+}
+
+mock_origin_url() {
+  printf 'http://%s:%s\n' "${VERIFY_MOCK_HOST:-$DEFAULT_MOCK_HOST}" "${VERIFY_MOCK_PORT:-$DEFAULT_MOCK_PORT}"
+}
+
+pid_alive() {
+  local pid="$1"
+  kill -0 "$pid" 2>/dev/null
+}
+
+kill_tree() {
+  local pid="$1"
+  local child
+  if ! pid_alive "$pid"; then
+    return 0
+  fi
+  while read -r child; do
+    [[ -n "$child" ]] || continue
+    kill_tree "$child"
+  done < <(pgrep -P "$pid" || true)
+  kill "$pid" 2>/dev/null || true
+  wait "$pid" 2>/dev/null || true
+  local i
+  for i in $(seq 1 50); do
+    pid_alive "$pid" || return 0
+    sleep 0.1
+  done
+  kill -9 "$pid" 2>/dev/null || true
+}
+
+port_holder_pid() {
+  local port="$1"
+  local pid
+  pid="$(lsof -nP -iTCP:"$port" -sTCP:LISTEN -t 2>/dev/null | head -n 1)"
+  if [[ -z "$pid" ]]; then
+    pid="$(
+      netstat -tlnp 2>/dev/null |
+        awk -v suffix=":${port}" '$4 ~ suffix"$" { split($7, a, "/"); print a[1]; exit }'
+    )"
+  fi
+  [[ -n "$pid" && "$pid" != "-" ]] || return 1
+  printf '%s\n' "$pid"
+}
+
+pid_in_tree() {
+  local needle="$1"
+  local root="$2"
+  local child
+  [[ "$needle" == "$root" ]] && return 0
+  while read -r child; do
+    [[ -n "$child" ]] || continue
+    if pid_in_tree "$needle" "$child"; then
+      return 0
+    fi
+  done < <(pgrep -P "$root" || true)
+  return 1
+}
+
+lockfile_other_dev() {
+  local lock="$REPO_ROOT/.next/dev/lock"
+  local content pid
+  [[ -f "$lock" ]] || return 1
+  content="$(cat "$lock" 2>/dev/null || true)"
+  pid="$(printf '%s' "$content" | sed -n 's/.*"pid":[[:space:]]*\([0-9][0-9]*\).*/\1/p' | head -n 1)"
+  [[ -n "$pid" ]] || return 1
+  pid_alive "$pid" || return 1
+  printf '%s\n' "$pid"
+}
+
+health_ok() {
+  local origin="$1"
+  curl -fsS --max-time 2 "${origin}/api/health" 2>/dev/null | grep -q '"status":"ok"'
+}
+
+mock_healthy() {
+  local origin="$1"
+  if curl -fsS --max-time 2 "${origin}/health" 2>/dev/null | grep -q '"status":"ok"'; then
+    return 0
+  fi
+  curl -fsS --max-time 2 "${origin}/superchargers/soon/stats" 2>/dev/null | grep -q '"total_active"'
+}
+
+wait_ready() {
+  local origin="$1"
+  local i
+  for i in $(seq 1 90); do
+    if health_ok "$origin"; then
+      return 0
+    fi
+    sleep 1
+  done
+  return 1
+}
+
+wait_mock_ready() {
+  local origin="$1"
+  local i
+  for i in $(seq 1 30); do
+    if mock_healthy "$origin"; then
+      return 0
+    fi
+    sleep 0.2
+  done
+  return 1
+}
+
+write_mock_state() {
+  local pid="$1"
+  local origin="$2"
+  local host="$3"
+  local port="$4"
+  printf '%s\n' "$pid" >"$(state_file mock_pid)"
+  printf '%s\n' "$origin" >"$(state_file mock_origin)"
+  printf '%s\n' "$host" >"$(state_file mock_host)"
+  printf '%s\n' "$port" >"$(state_file mock_port)"
+}
+
+saved_mock_healthy() {
+  local pid origin port holder
+  [[ -f "$(state_file mock_pid)" ]] || return 1
+  [[ -f "$(state_file mock_origin)" ]] || return 1
+  pid="$(cat "$(state_file mock_pid)")"
+  origin="$(cat "$(state_file mock_origin)")"
+  pid_alive "$pid" || return 1
+  mock_healthy "$origin" || return 1
+  if [[ -f "$(state_file mock_port)" ]]; then
+    port="$(cat "$(state_file mock_port)")"
+    holder="$(port_holder_pid "$port" || true)"
+    [[ -n "$holder" ]] || return 1
+    pid_in_tree "$holder" "$pid" || return 1
+  fi
+  return 0
+}
+
+kill_saved_mock() {
+  if [[ -f "$(state_file mock_pid)" ]]; then
+    local pid
+    pid="$(cat "$(state_file mock_pid)")"
+    kill_tree "$pid"
+  fi
+}
+
+kill_saved_next() {
+  if [[ -f "$(state_file pid)" ]]; then
+    local pid
+    pid="$(cat "$(state_file pid)")"
+    kill_tree "$pid"
+  fi
+}
+
+wait_checkout_free() {
+  local i other holder
+  local port="$DEFAULT_PORT"
+  if [[ -f "$(state_file port)" ]]; then
+    port="$(cat "$(state_file port)")"
+  fi
+  for i in $(seq 1 50); do
+    other="$(lockfile_other_dev || true)"
+    holder="$(port_holder_pid "$port" || true)"
+    if [[ -z "${other:-}" && -z "${holder:-}" ]]; then
+      return 0
+    fi
+    sleep 0.1
+  done
+  return 1
+}
+
+ensure_mock() {
+  local host="${VERIFY_MOCK_HOST:-$DEFAULT_MOCK_HOST}"
+  local port="${VERIFY_MOCK_PORT:-$DEFAULT_MOCK_PORT}"
+  local origin="http://${host}:${port}"
+  local saved_pid=""
+  local holder
+
+  if [[ -f "$(state_file mock_pid)" ]]; then
+    saved_pid="$(cat "$(state_file mock_pid)")"
+  fi
+
+  if holder="$(port_holder_pid "$port")"; then
+    if [[ -n "$saved_pid" ]] && pid_in_tree "$holder" "$saved_pid"; then
+      if mock_healthy "$origin"; then
+        write_mock_state "$saved_pid" "$origin" "$host" "$port"
+        return 0
+      fi
+      kill_tree "$saved_pid"
+      holder="$(port_holder_pid "$port" || true)"
+      if [[ -n "$holder" ]]; then
+        die "mock port ${port} is already in use by pid ${holder}"
+      fi
+    else
+      die "mock port ${port} is already in use by pid ${holder}"
+    fi
+  fi
+
+  : >"$STATE_DIR/mock.log"
+  (
+    cd "$REPO_ROOT"
+    env VERIFY_MOCK_HOST="$host" VERIFY_MOCK_PORT="$port" node "$MOCK_SCRIPT"
+  ) >>"$STATE_DIR/mock.log" 2>&1 &
+  local pid=$!
+  write_mock_state "$pid" "$origin" "$host" "$port"
+  if ! wait_mock_ready "$origin"; then
+    kill_tree "$pid"
+    die "fixture mock did not become ready on ${origin}. See ${STATE_DIR}/mock.log"
+  fi
+}
+
+cmd_launch() {
+  mkdir -p "$STATE_DIR" "$EVIDENCE_DIR"
+
+  local mode other
+  mode="$(requested_mode)"
+  if [[ "$mode" == "live" && -z "${VERIFY_BACKEND_URL:-}" ]]; then
+    die "VERIFY_MODE=live requires VERIFY_BACKEND_URL"
+  fi
+
+  if [[ -f "$(state_file pid)" ]]; then
+    local existing origin saved_mode
+    existing="$(cat "$(state_file pid)")"
+    saved_mode=""
+    [[ -f "$(state_file mode)" ]] && saved_mode="$(cat "$(state_file mode)")"
+    if pid_alive "$existing" && [[ -f "$(state_file origin)" ]]; then
+      origin="$(cat "$(state_file origin)")"
+      if health_ok "$origin" && [[ "$saved_mode" == "$mode" ]]; then
+        if [[ "$mode" == "fixture" ]]; then
+          if saved_mock_healthy; then
+            printf 'reused %s pid=%s mode=%s\n' "$origin" "$existing" "$mode"
+            return 0
+          fi
+          ensure_mock
+          if health_ok "$origin" && saved_mock_healthy; then
+            printf 'reused %s pid=%s mode=%s\n' "$origin" "$existing" "$mode"
+            return 0
+          fi
+        else
+          printf 'reused %s pid=%s mode=%s\n' "$origin" "$existing" "$mode"
+          return 0
+        fi
+      fi
+      if [[ "$saved_mode" != "$mode" ]]; then
+        kill_saved_mock
+        kill_saved_next
+        if ! wait_checkout_free; then
+          if other="$(lockfile_other_dev)"; then
+            die "another next dev holds this checkout (pid ${other}). Refuse to share it. Stop that process or use another worktree."
+          fi
+        fi
+      fi
+    fi
+  fi
+
+  if other="$(lockfile_other_dev)"; then
+    die "another next dev holds this checkout (pid ${other}). Refuse to share it. Stop that process or use another worktree."
+  fi
+
+  local port="$DEFAULT_PORT"
+  local host="$DEFAULT_HOST"
+  local holder
+  if holder="$(port_holder_pid "$port")"; then
+    die "port ${port} is already in use by pid ${holder}. Set VERIFY_PORT to a free port."
+  fi
+
+  if [[ "$mode" == "fixture" ]]; then
+    ensure_mock
+  else
+    kill_saved_mock
+    rm -f "$(state_file mock_pid)" "$(state_file mock_origin)" "$(state_file mock_host)" "$(state_file mock_port)"
+  fi
+
+  local origin="http://${host}:${port}"
+  local secret
+  secret="$(openssl rand -hex 32)"
+
+  : >"$STATE_DIR/next.log"
+
+  local env_opts=(-u NEXT_PUBLIC_CLOUDFLARE_ANALYTICS_TOKEN)
+  local env_assign=(
+    PORT="$port"
+    HOSTNAME="$host"
+    SITE_URL="$origin"
+    ADMIN_USERNAME="${VERIFY_ADMIN_USERNAME:-verify-admin}"
+    ADMIN_PASSWORD="${VERIFY_ADMIN_PASSWORD:-verify-admin-password}"
+    ADMIN_SESSION_SECRET="$secret"
+  )
+  if [[ "$mode" == "fixture" ]]; then
+    env_assign+=(
+      BACKEND_URL="$(mock_origin_url)"
+    )
+    env_opts+=(-u RUST_INTERNAL_IMPORT_SECRET)
+  elif [[ "$mode" == "live" ]]; then
+    env_assign+=(
+      BACKEND_URL="$VERIFY_BACKEND_URL"
+      RUST_INTERNAL_IMPORT_SECRET="${VERIFY_IMPORT_SECRET:-verify-import-secret}"
+    )
+  else
+    env_opts+=(-u BACKEND_URL -u RUST_INTERNAL_IMPORT_SECRET)
+  fi
+
+  (
+    cd "$REPO_ROOT"
+    env "${env_opts[@]}" "${env_assign[@]}" \
+      npx next dev --hostname "$host" --port "$port"
+  ) >>"$STATE_DIR/next.log" 2>&1 &
+  local pid=$!
+
+  printf '%s\n' "$pid" >"$(state_file pid)"
+  printf '%s\n' "$port" >"$(state_file port)"
+  printf '%s\n' "$host" >"$(state_file host)"
+  printf '%s\n' "$origin" >"$(state_file origin)"
+  printf '%s\n' "$mode" >"$(state_file mode)"
+  printf '%s\n' "$VERIFY_RUN_ID" >"$(state_file run_id)"
+
+  if ! wait_ready "$origin"; then
+    kill_saved_mock
+    kill_tree "$pid"
+    die "next dev did not become ready on ${origin}. See ${STATE_DIR}/next.log"
+  fi
+
+  printf 'ready %s pid=%s mode=%s evidence=%s\n' "$origin" "$pid" "$mode" "$EVIDENCE_DIR"
+}
+
+cmd_doctor() {
+  local pid origin port host mode holder
+  pid="$(read_state pid)"
+  origin="$(read_state origin)"
+  port="$(read_state port)"
+  host="$(read_state host)"
+  mode="$(read_state mode)"
+
+  pid_alive "$pid" || die "pid ${pid} is not running"
+
+  holder="$(port_holder_pid "$port" || true)"
+  [[ -n "$holder" ]] || die "nothing listens on ${host}:${port}"
+  pid_in_tree "$holder" "$pid" || die "port ${port} is held by pid ${holder}, not this run (pid ${pid})"
+
+  local health
+  health="$(curl -fsS --max-time 5 "${origin}/api/health")" || die "GET ${origin}/api/health failed"
+  printf '%s' "$health" | grep -q '"status":"ok"' || die "health body was ${health}"
+
+  local home
+  home="$(curl -fsS --max-time 10 "${origin}/")" || die "GET ${origin}/ failed"
+  printf '%s' "$home" | grep -q 'Soonercharger' || die "home HTML does not contain Soonercharger"
+
+  if [[ "$mode" == "fixture" ]]; then
+    local mock_pid mock_origin mock_port mock_host mock_holder
+    mock_pid="$(read_state mock_pid)"
+    mock_origin="$(read_state mock_origin)"
+    mock_port="$(read_state mock_port)"
+    mock_host="$(read_state mock_host)"
+    pid_alive "$mock_pid" || die "mock pid ${mock_pid} is not running"
+    mock_holder="$(port_holder_pid "$mock_port" || true)"
+    [[ -n "$mock_holder" ]] || die "nothing listens on ${mock_host}:${mock_port}"
+    pid_in_tree "$mock_holder" "$mock_pid" || die "mock port ${mock_port} is held by pid ${mock_holder}, not this run (mock pid ${mock_pid})"
+    mock_healthy "$mock_origin" || die "fixture mock is down at ${mock_origin}"
+
+    local list
+    list="$(curl -fsS --max-time 20 "${origin}/list")" || die "GET ${origin}/list failed"
+    printf '%s' "$list" | grep -q 'Riverside Plaza' || die "list HTML does not contain Riverside Plaza"
+  fi
+
+  printf 'ok origin=%s pid=%s port=%s mode=%s health=%s\n' "$origin" "$pid" "$port" "$mode" "$health"
+}
+
+cmd_origin() {
+  read_state origin
+}
+
+cmd_curl() {
+  local path="${1:-}"
+  [[ -n "$path" ]] || die "usage: helpers/verify curl /path"
+  [[ "$path" == /* ]] || die "path must start with /"
+
+  local origin dest status body
+  origin="$(read_state origin)"
+  mkdir -p "$EVIDENCE_DIR"
+  dest="$EVIDENCE_DIR/$(printf '%s' "$path" | tr '/?' '__')"
+  status="$(curl -sS -o "${dest}.body" -w '%{http_code}' --max-time 20 "${origin}${path}")"
+  printf '%s\n' "$status" >"${dest}.status"
+  printf '%s %s%s\n' "$status" "$origin" "$path"
+  printf 'body %s.body\n' "$dest"
+}
+
+cmd_cleanup() {
+  if [[ ! -d "$STATE_DIR" ]]; then
+    printf 'no state dir %s\n' "$STATE_DIR"
+    return 0
+  fi
+  kill_saved_mock
+  kill_saved_next
+  rm -rf "$STATE_DIR"
+  printf 'cleaned state. evidence kept at %s\n' "$EVIDENCE_DIR"
+}
+
+main() {
+  local cmd="${1:-}"
+  shift || true
+  case "$cmd" in
+    launch) cmd_launch ;;
+    doctor) cmd_doctor ;;
+    origin) cmd_origin ;;
+    curl)
+      cmd_curl "${1:-}"
+      ;;
+    cleanup) cmd_cleanup ;;
+    -h | --help | help | "") usage ;;
+    *)
+      usage
+      die "unknown command: $cmd"
+      ;;
+  esac
+}
+
+main "$@"

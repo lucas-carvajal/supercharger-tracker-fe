@@ -24,6 +24,8 @@ npm run dev
 
 Run `npm run lint` after code or docs-adjacent JSX changes. Run `npm run build` for routing, metadata, auth, or deployment-sensitive changes.
 
+Live UI proof uses `.cursor/skills/verify-soonercharger/`. `npm run lint` and `npm run build` do not drive the public pages, admin login, or HTTP routes.
+
 ## Environment Variables
 
 The main runtime variables are documented in `README.md` and `.env.example`.
