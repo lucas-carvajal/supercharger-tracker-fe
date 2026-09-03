@@ -67,10 +67,8 @@ kill_tree() {
 
 port_holder_pid() {
   local port="$1"
-  local line pid
-  line="$(ss -tlnp "sport = :${port}" 2>/dev/null | awk 'NR > 1 { print; exit }')"
-  [[ -n "$line" ]] || return 1
-  pid="$(printf '%s' "$line" | sed -n 's/.*pid=\([0-9][0-9]*\).*/\1/p' | head -n 1)"
+  local pid
+  pid="$(lsof -nP -iTCP:"$port" -sTCP:LISTEN -t 2>/dev/null | head -n 1)"
   [[ -n "$pid" ]] || return 1
   printf '%s\n' "$pid"
 }
@@ -135,7 +133,8 @@ cmd_launch() {
 
   local port="$DEFAULT_PORT"
   local host="$DEFAULT_HOST"
-  if holder="$(port_holder_pid "$port" || true)"; then
+  local holder
+  if holder="$(port_holder_pid "$port")"; then
     die "port ${port} is already in use by pid ${holder}. Set VERIFY_PORT to a free port."
   fi
 
