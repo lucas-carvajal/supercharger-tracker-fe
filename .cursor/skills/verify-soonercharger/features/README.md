@@ -11,6 +11,7 @@ This directory is the maintained source for verifying the user-facing behavior o
 - Never drive an instance this run did not start.
 - This checkout allows one `next dev` only. If launch reports another server, stop.
 - No-backend mode is the default. Live-backend recipes say `VERIFY_BACKEND_URL` is required.
+- Do not also open `localhost` when the instance is on `127.0.0.1`. The admin cookie is host and path, not port.
 
 ## Driving conventions
 
