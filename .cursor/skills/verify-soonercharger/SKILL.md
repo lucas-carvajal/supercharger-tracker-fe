@@ -71,15 +71,17 @@ Stable handles from this repo:
 - Updates empty copy `No recent updates yet`
 - Updates button `Load more`
 - Charger error heading `Charger data unavailable`
+- Charger 404 heading `Charger not found` with `Go back` and `Browse the map`
 - Charger breadcrumb `aria-label="Breadcrumb"` and `Back to all sites`
 - Charger source link `View on Tesla.com`
+- Map popup `Close popup`, `Zoom in`, `Zoom out`
 - Admin login heading `Sign in to admin`
 - Admin fields `username`, `password`, button `Sign in`
 - Admin errors `Invalid username or password.` and `Sign in is temporarily unavailable.`
 
 Prefer those strings and ARIA names. Do not use layout coordinates.
 
-Open `/admin` only when the feature file asks for it. Never add an admin link to public nav.
+Open `/admin` only when the feature file asks for it. Never add an admin link to public nav. The `admin_session` cookie is host and path, not port. Two `localhost` ports share it. Use a fresh browser profile for admin, or stay on `127.0.0.1` and do not also drive `localhost`.
 
 ## Evidence
 

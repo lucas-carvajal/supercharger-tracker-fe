@@ -33,7 +33,7 @@ Preconditions:
 - **Source link.** Choose `View on Tesla.com`. A new tab opens the charger's `tesla_url`.
 - **Map jump.** Choose the map region under `Find it on the map`. The URL becomes `/map?charger={id}`.
 - **Back.** From a list-origin visit, choose `Back to all sites`. The browser returns to `/list` when history can go back. Otherwise the link goes to `/list`.
-- **Not found.** With a live backend, open `/charger/does-not-exist`. The app not-found page appears. Do not treat that as `Charger data unavailable`.
+- **Not found.** With a live backend, open `/charger/does-not-exist`. The heading is `Charger not found`. Buttons `Go back` and `Browse the map` are visible. Do not treat that as `Charger data unavailable`.
 - **Proof.** Save the HTTP body for the id you opened and a screenshot of the heading. Record the entry point. For the error path, the heading must be `Charger data unavailable`.
 
 ## Gotchas
