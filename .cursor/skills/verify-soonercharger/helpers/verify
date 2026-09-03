@@ -69,7 +69,13 @@ port_holder_pid() {
   local port="$1"
   local pid
   pid="$(lsof -nP -iTCP:"$port" -sTCP:LISTEN -t 2>/dev/null | head -n 1)"
-  [[ -n "$pid" ]] || return 1
+  if [[ -z "$pid" ]]; then
+    pid="$(
+      netstat -tlnp 2>/dev/null |
+        awk -v suffix=":${port}" '$4 ~ suffix"$" { split($7, a, "/"); print a[1]; exit }'
+    )"
+  fi
+  [[ -n "$pid" && "$pid" != "-" ]] || return 1
   printf '%s\n' "$pid"
 }
 
@@ -225,10 +231,9 @@ cmd_curl() {
   mkdir -p "$EVIDENCE_DIR"
   dest="$EVIDENCE_DIR/$(printf '%s' "$path" | tr '/?' '__')"
   status="$(curl -sS -o "${dest}.body" -w '%{http_code}' --max-time 20 "${origin}${path}")"
-  body="$(cat "${dest}.body")"
   printf '%s\n' "$status" >"${dest}.status"
   printf '%s %s%s\n' "$status" "$origin" "$path"
-  printf '%s\n' "$body"
+  printf 'body %s.body\n' "$dest"
 }
 
 cmd_cleanup() {

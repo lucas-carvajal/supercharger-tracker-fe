@@ -51,7 +51,7 @@ HTTP first for routes and HTML. Browser only for clicks, filters, map, and forms
 .cursor/skills/verify-soonercharger/helpers/verify curl /robots.txt
 ```
 
-`curl` writes `{evidence}/{path}.status` and `{evidence}/{path}.body`. Path must start with `/`.
+`curl` writes `{evidence}/{path}.status` and `{evidence}/{path}.body`, then prints the status line and the body path. It does not print the body. Path must start with `/`.
 
 Stable handles from this repo:
 
