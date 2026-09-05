@@ -28,7 +28,7 @@ This directory is the maintained source for verifying the user-facing behavior o
 - Capture the user action and the resulting state, not only the final screen.
 - UI proof includes the HTML or an ARIA snapshot and a screenshot with Soonercharger identity visible.
 - HTTP proof includes the command, status code, and body files under `/tmp/soonercharger-verify-evidence/$VERIFY_RUN_ID`.
-- Mutation proof includes a second read of the stored value. Admin import writes charger data. Skip it unless the backend is disposable. Admin country backfill is a mutation against the fixture mock and is safe to click.
+- Mutation proof includes a second read of the stored value. Admin import writes charger data. Skip it unless the backend is disposable.
 - Record the feature ID and entry point used with every artifact.
 - Report an unreachable path with the attempted command and the unmet precondition.
 - Do not report a skipped entry point as verified through a different path.

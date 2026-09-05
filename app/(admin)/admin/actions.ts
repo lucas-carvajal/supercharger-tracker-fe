@@ -4,12 +4,10 @@ import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
 import { clearAdminSession, createAdminSession, requireAdminSession } from "@/lib/admin-auth";
 import {
-  BackfillCountryResponseSchema,
   ImportErrorResponseSchema,
   ImportRunResponseSchema,
 } from "@/lib/contracts/admin-import";
 import type {
-  BackfillFormState,
   ImportFormState,
   LoginFormState,
 } from "@/app/(admin)/admin/form-state";
@@ -185,92 +183,5 @@ export async function runImport(
     error: null,
     result: `Import ${status.replaceAll("_", " ")} successfully.`,
     response: responseText,
-  };
-}
-
-export async function runCountryBackfill(): Promise<BackfillFormState> {
-  await requireAdminSession();
-
-  const backendUrl = process.env.BACKEND_URL;
-  if (!backendUrl) {
-    logAdminConfigError("BACKEND_URL is not configured for country backfill.");
-
-    return {
-      error: "Country backfill is temporarily unavailable.",
-      result: null,
-      response: null,
-    };
-  }
-
-  const internalSecret = process.env.RUST_INTERNAL_IMPORT_SECRET;
-  if (!internalSecret) {
-    logAdminConfigError(
-      "RUST_INTERNAL_IMPORT_SECRET is not configured for country backfill.",
-    );
-
-    return {
-      error: "Country backfill is temporarily unavailable.",
-      result: null,
-      response: null,
-    };
-  }
-
-  const url = new URL("/admin/backfill/country", backendUrl);
-
-  let upstreamResponse: Response;
-  try {
-    upstreamResponse = await fetch(url, {
-      method: "POST",
-      headers: {
-        "X-Admin-Internal-Secret": internalSecret,
-      },
-      cache: "no-store",
-    });
-  } catch (error) {
-    console.error("[admin] Could not reach Rust backend country backfill endpoint.", error);
-
-    return {
-      error: "Country backfill is temporarily unavailable.",
-      result: null,
-      response: null,
-    };
-  }
-
-  let parsedResponse: unknown = null;
-  try {
-    parsedResponse = await upstreamResponse.json();
-  } catch {
-    parsedResponse = null;
-  }
-
-  const responseText = parsedResponse
-    ? JSON.stringify(parsedResponse, null, 2)
-    : `Country backfill endpoint returned HTTP ${upstreamResponse.status}.`;
-
-  if (!upstreamResponse.ok) {
-    return {
-      error: "Country backfill is temporarily unavailable.",
-      result: null,
-      response: responseText,
-    };
-  }
-
-  const parsedRun = BackfillCountryResponseSchema.safeParse(parsedResponse);
-  if (!parsedRun.success) {
-    console.error("[admin] Country backfill endpoint returned an invalid response.");
-
-    return {
-      error: "Country backfill is temporarily unavailable.",
-      result: null,
-      response: responseText,
-    };
-  }
-
-  refresh();
-
-  return {
-    error: null,
-    result: "Country backfill completed.",
-    response: JSON.stringify(parsedRun.data, null, 2),
   };
 }

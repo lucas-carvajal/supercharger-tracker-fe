@@ -10,7 +10,7 @@ The app uses these environment variables:
 - `ADMIN_USERNAME`: Username for the `/admin/login` form. Defaults to `admin52662`.
 - `ADMIN_PASSWORD`: Password for the `/admin/login` form.
 - `ADMIN_SESSION_SECRET`: Long random secret used to sign the admin session cookie.
-- `RUST_INTERNAL_IMPORT_SECRET`: Shared secret sent from the admin panel to the backend import and country-backfill endpoints.
+- `RUST_INTERNAL_IMPORT_SECRET`: Shared secret sent from the admin panel to the backend import endpoints.
 - `SITE_URL`: Public canonical URL for metadata, sitemap, and robots. Defaults to `https://soonercharger.com`.
 - `NEXT_PUBLIC_CLOUDFLARE_ANALYTICS_TOKEN`: Public Cloudflare Web Analytics token. This is embedded at build time; omit it to disable analytics.
 
@@ -72,8 +72,8 @@ Notes:
 
 - `BACKEND_URL` is required at runtime. The app uses it in server-rendered pages and route handlers.
 - `ADMIN_USERNAME`, `ADMIN_PASSWORD`, and `ADMIN_SESSION_SECRET` control access to `/admin`.
-- `RUST_INTERNAL_IMPORT_SECRET` is required when running admin imports, country backfill, or reading the current import version.
-- See [docs/admin-auth.md](docs/admin-auth.md) for the admin session token, import auth, and country backfill flow.
+- `RUST_INTERNAL_IMPORT_SECRET` is required when running admin imports or reading the current import version.
+- See [docs/admin-auth.md](docs/admin-auth.md) for the admin session token and import auth.
 - `http://host.docker.internal:8080` works on Docker Desktop. On Linux, replace it with an address your container can reach for the backend API.
 - The container listens on port `3000`.
 
