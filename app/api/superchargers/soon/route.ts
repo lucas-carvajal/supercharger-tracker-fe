@@ -15,14 +15,14 @@ export async function GET(request: NextRequest) {
     limit: searchParams.get("limit"),
     offset: searchParams.get("offset"),
     status: searchParams.get("status"),
-    region: searchParams.get("region"),
+    country: searchParams.get("country"),
   });
 
   const upstream = new URLSearchParams();
   upstream.set("limit", query.limit ?? "20");
   upstream.set("offset", query.offset ?? "0");
   if (query.status) upstream.set("status", query.status);
-  if (query.region) upstream.set("region", query.region);
+  if (query.country) upstream.set("country", query.country);
 
   const res = await fetch(
     `${baseUrl}/superchargers/soon?${upstream}`,

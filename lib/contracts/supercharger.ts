@@ -27,6 +27,7 @@ export const SuperchargerSchema = z.object({
   first_seen_at: z.string(),
   last_scraped_at: z.string(),
   details_fetch_failed: z.boolean(),
+  country: z.string().nullable().optional(),
 });
 
 export type Supercharger = z.infer<typeof SuperchargerSchema>;
@@ -39,6 +40,7 @@ export const SuperchargerMapItemSchema = z.object({
   status: SuperchargerStatusSchema,
   /** Present when known; 0 or omitted means hide in UI */
   num_charger_stalls: z.number().optional(),
+  country: z.string().nullable().optional(),
 });
 
 export type SuperchargerMapItem = z.infer<typeof SuperchargerMapItemSchema>;
@@ -74,7 +76,7 @@ export const SuperchargersSoonQuerySchema = z.object({
   limit: z.string().nullable().optional(),
   offset: z.string().nullable().optional(),
   status: z.string().nullable().optional(),
-  region: z.string().nullable().optional(),
+  country: z.string().nullable().optional(),
 });
 
 export type SuperchargersSoonQuery = z.infer<
