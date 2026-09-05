@@ -79,12 +79,25 @@ The admin dashboard also reads the current scrape run version from `${BACKEND_UR
 
 If more import routes are added later, keep them under `/admin/import/...` on the backend and protect them with the same internal-secret pattern.
 
+## Country Backfill Flow
+
+Country backfill is a temporary admin mutation. Public pages must not call it. There is no public Next.js route for it.
+
+The admin country backfill form is a protected server action:
+
+1. `runCountryBackfill` calls `requireAdminSession()`.
+2. The action posts to `${BACKEND_URL}/admin/backfill/country`.
+3. The request includes `X-Admin-Internal-Secret: ${RUST_INTERNAL_IMPORT_SECRET}`.
+
+The backend must validate `RUST_INTERNAL_IMPORT_SECRET` independently. The browser never receives this secret. The dashboard shows the JSON counts from a successful response.
+
 ## Errors And Logging
 
 Client-facing authentication configuration errors are intentionally generic:
 
 - `Sign in is temporarily unavailable.`
 - `Import is temporarily unavailable.`
+- `Country backfill is temporarily unavailable.`
 
 The exact missing configuration is logged on the Next.js server with an `[admin]` prefix, for example:
 

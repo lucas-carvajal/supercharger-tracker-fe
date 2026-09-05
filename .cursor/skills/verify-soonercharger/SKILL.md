@@ -62,7 +62,8 @@ Stable handles from this repo:
 - Primary nav `aria-label="Primary"` with `List`, `Map`, `Updates`
 - List heading `All upcoming Superchargers`
 - List error status `Supercharger data unavailable`
-- List filters `All Statuses`, `Preliminary Planning`, `In Design`, `Under Construction`, `All Regions`
+- List filters `All Statuses`, `Preliminary Planning`, `In Design`, `Under Construction`, `All Countries`
+- List country filter `list-filter-country`
 - List button `Show more`
 - Map error status `Map data unavailable`
 - Map loading text `Loading map…`

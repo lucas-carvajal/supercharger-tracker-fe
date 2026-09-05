@@ -9,11 +9,11 @@ import { SuperchargerList } from "@/components/SuperchargerList";
 export const metadata: Metadata = {
   title: "All upcoming sites",
   description:
-    "Browse every Tesla Supercharger coming soon worldwide. Filter by status and region.",
+    "Browse every Tesla Supercharger coming soon worldwide. Filter by status and country.",
   openGraph: {
     title: "All upcoming Superchargers",
     description:
-      "Browse every Tesla Supercharger coming soon worldwide. Filter by status and region.",
+      "Browse every Tesla Supercharger coming soon worldwide. Filter by status and country.",
     url: "/list",
   },
   alternates: {
@@ -44,7 +44,7 @@ export default async function ListPage() {
         </h1>
         <p className="mt-3 max-w-2xl text-sm text-muted-foreground sm:text-base">
           Every site currently in development or under construction. Filter by
-          status or region.
+          status or country.
         </p>
       </header>
       <main>

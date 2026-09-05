@@ -6,6 +6,7 @@ export const RecentUpdateItemSchema = z.object({
   title: z.string(),
   city: z.string().nullable(),
   region: z.string().nullable(),
+  country: z.string().nullable().optional(),
   old_status: SuperchargerStatusSchema.nullable(),
   new_status: SuperchargerStatusSchema,
   changed_at: z.string(),

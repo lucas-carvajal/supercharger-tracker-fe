@@ -346,8 +346,8 @@ cmd_launch() {
   if [[ "$mode" == "fixture" ]]; then
     env_assign+=(
       BACKEND_URL="$(mock_origin_url)"
+      RUST_INTERNAL_IMPORT_SECRET="${VERIFY_IMPORT_SECRET:-verify-import-secret}"
     )
-    env_opts+=(-u RUST_INTERNAL_IMPORT_SECRET)
   elif [[ "$mode" == "live" ]]; then
     env_assign+=(
       BACKEND_URL="$VERIFY_BACKEND_URL"

@@ -42,10 +42,16 @@ function withoutHistory(charger) {
 
 function listResponse(url) {
   const status = url.searchParams.get("status");
-  const region = url.searchParams.get("region");
+  const country = url.searchParams.get("country");
+  const countryFilter = country ? country.toUpperCase() : null;
   const filtered = catalog.chargers.filter((charger) => {
     if (status && charger.status !== status) return false;
-    if (region && charger.region !== region) return false;
+    if (
+      countryFilter &&
+      String(charger.country ?? "").toUpperCase() !== countryFilter
+    ) {
+      return false;
+    }
     return true;
   });
   const { limit, offset } = pageParams(url);
@@ -75,6 +81,7 @@ function mapResponse() {
       latitude: charger.latitude,
       longitude: charger.longitude,
       status: charger.status,
+      country: charger.country,
     };
     if (charger.num_charger_stalls !== undefined) {
       item.num_charger_stalls = charger.num_charger_stalls;
@@ -98,6 +105,20 @@ const server = http.createServer((req, res) => {
   const url = new URL(req.url ?? "/", `http://${req.headers.host || `${host}:${port}`}`);
   const pathname = url.pathname.replace(/\/+$/, "") || "/";
 
+  if (pathname === "/admin/backfill/country" && req.method === "POST") {
+    const secret = req.headers["x-admin-internal-secret"];
+    if (!secret) {
+      send(res, 401, { error: "unauthorized" });
+      return;
+    }
+    send(res, 200, {
+      coming_soon_updated: 0,
+      opened_updated: 0,
+      failed: 0,
+    });
+    return;
+  }
+
   if (req.method !== "GET") {
     send(res, 404, { error: "not found" });
     return;
@@ -109,6 +130,11 @@ const server = http.createServer((req, res) => {
   }
 
   if (pathname === "/superchargers/soon") {
+    const country = url.searchParams.get("country");
+    if (country && !/^[A-Za-z]{2}$/.test(country)) {
+      send(res, 400, { error: `invalid country: ${country}` });
+      return;
+    }
     send(res, 200, listResponse(url));
     return;
   }

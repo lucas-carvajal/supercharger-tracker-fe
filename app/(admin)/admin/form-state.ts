@@ -17,3 +17,15 @@ export const initialImportFormState: ImportFormState = {
   result: null,
   response: null,
 };
+
+export interface BackfillFormState {
+  error: string | null;
+  result: string | null;
+  response: string | null;
+}
+
+export const initialBackfillFormState: BackfillFormState = {
+  error: null,
+  result: null,
+  response: null,
+};

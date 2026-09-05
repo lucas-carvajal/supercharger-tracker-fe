@@ -18,3 +18,13 @@ export const ImportErrorResponseSchema = z.object({
 });
 
 export type ImportErrorResponse = z.infer<typeof ImportErrorResponseSchema>;
+
+export const BackfillCountryResponseSchema = z.object({
+  coming_soon_updated: z.number(),
+  opened_updated: z.number(),
+  failed: z.number(),
+});
+
+export type BackfillCountryResponse = z.infer<
+  typeof BackfillCountryResponseSchema
+>;
