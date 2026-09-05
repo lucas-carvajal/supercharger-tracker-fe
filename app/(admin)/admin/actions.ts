@@ -188,10 +188,7 @@ export async function runImport(
   };
 }
 
-export async function runCountryBackfill(
-  _previousState: BackfillFormState,
-  _formData: FormData,
-): Promise<BackfillFormState> {
+export async function runCountryBackfill(): Promise<BackfillFormState> {
   await requireAdminSession();
 
   const backendUrl = process.env.BACKEND_URL;
