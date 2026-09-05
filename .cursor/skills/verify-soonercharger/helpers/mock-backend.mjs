@@ -105,20 +105,6 @@ const server = http.createServer((req, res) => {
   const url = new URL(req.url ?? "/", `http://${req.headers.host || `${host}:${port}`}`);
   const pathname = url.pathname.replace(/\/+$/, "") || "/";
 
-  if (pathname === "/admin/backfill/country" && req.method === "POST") {
-    const secret = req.headers["x-admin-internal-secret"];
-    if (!secret) {
-      send(res, 401, { error: "unauthorized" });
-      return;
-    }
-    send(res, 200, {
-      coming_soon_updated: 0,
-      opened_updated: 0,
-      failed: 0,
-    });
-    return;
-  }
-
   if (req.method !== "GET") {
     send(res, 404, { error: "not found" });
     return;
