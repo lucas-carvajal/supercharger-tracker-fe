@@ -6,6 +6,7 @@ import {
   type Supercharger,
   type SuperchargerStatus,
 } from "@/lib/contracts/supercharger";
+import { COUNTRY_GROUPS } from "@/lib/countries";
 import { SuperchargerCard } from "@/components/SuperchargerCard";
 import { Button } from "@/components/ui/button";
 import { GlassCard } from "@/components/ui/glass-card";
@@ -16,73 +17,6 @@ const SKELETON_COUNT = 9;
 
 type FilterStatus = SuperchargerStatus | null;
 type LoadingMode = "idle" | "replacing" | "appending";
-
-const REGION_GROUPS: { label: string; options: { label: string; value: string }[] }[] = [
-  {
-    label: "North America",
-    options: [
-      { label: "United States", value: "US" },
-      { label: "Canada", value: "Canada" },
-      { label: "Mexico", value: "Mexico" },
-    ],
-  },
-  {
-    label: "Europe",
-    options: [
-      { label: "United Kingdom", value: "United Kingdom" },
-      { label: "Germany", value: "Germany" },
-      { label: "France", value: "France" },
-      { label: "Spain", value: "Spain" },
-      { label: "Norway", value: "Norway" },
-      { label: "Sweden", value: "Sweden" },
-      { label: "Italy", value: "Italy" },
-      { label: "Finland", value: "Finland" },
-      { label: "Denmark", value: "Denmark" },
-      { label: "Netherlands", value: "Netherlands" },
-      { label: "Switzerland", value: "Switzerland" },
-      { label: "Austria", value: "Austria" },
-      { label: "Poland", value: "Poland" },
-      { label: "Portugal", value: "Portugal" },
-      { label: "Czech Republic", value: "Czech Republic" },
-      { label: "Hungary", value: "Hungary" },
-      { label: "Romania", value: "Romania" },
-      { label: "Croatia", value: "Croatia" },
-      { label: "Slovenia", value: "Slovenia" },
-      { label: "Slovakia", value: "Slovakia" },
-      { label: "Latvia", value: "Latvia" },
-      { label: "Iceland", value: "Iceland" },
-      { label: "Ireland", value: "Ireland" },
-    ],
-  },
-  {
-    label: "Asia Pacific",
-    options: [
-      { label: "Australia", value: "Australia" },
-      { label: "New Zealand", value: "New Zealand" },
-      { label: "Japan", value: "Japan" },
-      { label: "South Korea", value: "South Korea" },
-      { label: "Taiwan", value: "Taiwan" },
-      { label: "Thailand", value: "Thailand" },
-    ],
-  },
-  {
-    label: "Middle East & Africa",
-    options: [
-      { label: "UAE", value: "UAE" },
-      { label: "Turkey", value: "Turkey" },
-      { label: "Israel", value: "Israel" },
-      { label: "Saudi Arabia", value: "Saudi Arabia" },
-      { label: "Morocco", value: "Morocco" },
-    ],
-  },
-  {
-    label: "Latin America",
-    options: [
-      { label: "Chile", value: "Chile" },
-      { label: "Colombia", value: "Colombia" },
-    ],
-  },
-];
 
 function FilterSelect({
   value,
@@ -142,13 +76,13 @@ export function SuperchargerList({
   const [total, setTotal] = useState(initialTotal);
   const [offset, setOffset] = useState(initialItems.length);
   const [activeStatus, setActiveStatus] = useState<FilterStatus>(null);
-  const [activeRegion, setActiveRegion] = useState<string | null>(null);
+  const [activeCountry, setActiveCountry] = useState<string | null>(null);
   const [loadingMode, setLoadingMode] = useState<LoadingMode>("idle");
   const [loadError, setLoadError] = useState(initialError);
 
   async function fetchItems(
     status: FilterStatus,
-    region: string | null,
+    country: string | null,
     currentOffset: number,
     replace: boolean
   ) {
@@ -160,7 +94,7 @@ export function SuperchargerList({
         offset: String(currentOffset),
       });
       if (status) params.set("status", status);
-      if (region) params.set("region", region);
+      if (country) params.set("country", country);
 
       const res = await fetch(`/api/superchargers/soon?${params}`);
       if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
@@ -194,18 +128,18 @@ export function SuperchargerList({
     const status = (value || null) as FilterStatus;
     if (status === activeStatus) return;
     setActiveStatus(status);
-    fetchItems(status, activeRegion, 0, true);
+    fetchItems(status, activeCountry, 0, true);
   }
 
-  function handleRegionChange(value: string) {
-    const region = value || null;
-    if (region === activeRegion) return;
-    setActiveRegion(region);
-    fetchItems(activeStatus, region, 0, true);
+  function handleCountryChange(value: string) {
+    const country = value || null;
+    if (country === activeCountry) return;
+    setActiveCountry(country);
+    fetchItems(activeStatus, country, 0, true);
   }
 
   function handleShowMore() {
-    fetchItems(activeStatus, activeRegion, offset, false);
+    fetchItems(activeStatus, activeCountry, offset, false);
   }
 
   const isLoading = loadingMode !== "idle";
@@ -234,12 +168,12 @@ export function SuperchargerList({
           </FilterSelect>
           <div className="h-5 w-px shrink-0 bg-border/60" />
           <FilterSelect
-            value={activeRegion ?? ""}
-            onChange={handleRegionChange}
+            value={activeCountry ?? ""}
+            onChange={handleCountryChange}
             disabled={isLoading}
           >
-            <option value="">All Regions</option>
-            {REGION_GROUPS.map((group) => (
+            <option value="">All Countries</option>
+            {COUNTRY_GROUPS.map((group) => (
               <optgroup key={group.label} label={group.label}>
                 {group.options.map((opt) => (
                   <option key={opt.value} value={opt.value}>
