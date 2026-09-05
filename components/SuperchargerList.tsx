@@ -153,7 +153,6 @@ export function SuperchargerList({
         />
       )}
 
-      {/* Filters */}
       <div className="mb-8 flex justify-center">
         <div className="flex w-full items-center overflow-hidden rounded-2xl border border-white/15 bg-background/90 shadow-2xl backdrop-blur-xl sm:w-auto">
           <FilterSelect
@@ -186,7 +185,6 @@ export function SuperchargerList({
         </div>
       </div>
 
-      {/* Grid */}
       <div className="grid grid-cols-1 items-start gap-5 md:grid-cols-2 lg:grid-cols-3">
         {loadingMode === "replacing"
           ? Array.from({ length: SKELETON_COUNT }).map((_, i) => (
@@ -197,7 +195,6 @@ export function SuperchargerList({
             ))}
       </div>
 
-      {/* Show more */}
       {loadingMode !== "replacing" && offset < total && (
         <div className="mt-10 flex justify-center">
           <Button
