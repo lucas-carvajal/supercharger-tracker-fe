@@ -64,6 +64,14 @@ Because the token is stateless, logout clears the browser cookie but does not re
 
 Admin pages also export `robots: { index: false, follow: false }`, and `/robots.txt` disallows `/admin`.
 
+## Server Actions
+
+`proxy.ts` does not protect a leaked Server Action id (GHSA-955p-x3mx-jcvp). Each privileged action checks the session itself.
+
+- `login` stays public. It checks `ADMIN_USERNAME` and `ADMIN_PASSWORD`. There is no session yet.
+- `logout` calls `requireAdminSession()`, then clears the cookie.
+- `runImport` calls `requireAdminSession()`.
+
 ## Import Flow
 
 The admin import form is a protected server action:

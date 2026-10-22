@@ -60,6 +60,7 @@ export async function login(
 }
 
 export async function logout() {
+  await requireAdminSession();
   await clearAdminSession();
   redirect("/admin/login");
 }
