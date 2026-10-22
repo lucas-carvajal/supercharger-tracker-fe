@@ -408,12 +408,12 @@ function MapMarker({
     };
   });
 
-  const marker = useMemo(
-    () =>
-      new MapLibreGL.Marker({
-        element: document.createElement("div"),
-      }).setLngLat([0, 0]),
-    [],
+  const [marker] = useState(() =>
+    new MapLibreGL.Marker({
+      ...markerOptions,
+      element: document.createElement("div"),
+      draggable,
+    }).setLngLat([longitude, latitude]),
   );
 
   useEffect(() => {
