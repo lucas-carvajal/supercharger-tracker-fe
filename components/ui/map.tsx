@@ -408,15 +408,13 @@ function MapMarker({
     };
   });
 
-  const marker = useMemo(() => {
-    return new MapLibreGL.Marker({
-      ...markerOptions,
-      element: document.createElement("div"),
-      draggable,
-    }).setLngLat([longitude, latitude]);
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const marker = useMemo(
+    () =>
+      new MapLibreGL.Marker({
+        element: document.createElement("div"),
+      }).setLngLat([0, 0]),
+    [],
+  );
 
   useEffect(() => {
     const element = marker.getElement();
